@@ -1,0 +1,17 @@
+name: anki-pinyin
+dependencies:
+ - pip
+ - pip:
+    #  - -i https://pypi.tuna.tsinghua.edu.cn/simple
+     - regex
+     - PyYAML
+     - mypy
+     - aqt[qt6]
+     # chinese
+     - jieba
+     - opencc-python-reimplemented 
+     - pypinyin
+     # japanese
+     - jaconv
+     - fugashi
+     - fugashi[unidic-lite]
