@@ -1,4 +1,5 @@
 # Create the vendor directory
+rm -rf tokenizer/vendor
 mkdir -p tokenizer/vendor
 
 # Install dependencies into the vendor directory
@@ -17,3 +18,4 @@ find tokenizer/vendor -type d -name "test" -exec rm -rf {} +
 find tokenizer/vendor -type f -name "*.pyc" -delete
 find tokenizer/vendor -type d \( -name "examples" -o -name "demos" -o -name "samples" \) -exec rm -rf {} +
 find tokenizer/vendor -type f \( -name ".travis.yml" -o -name "setup.py" -o -name "Makefile" -o -name "build.sh" \) -delete
+find tokenizer/vendor -type d -name "*.dist-info" -exec rm -rf {} +
