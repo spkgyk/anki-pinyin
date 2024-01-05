@@ -1,4 +1,4 @@
-from regex import compile
+from ..vendor.regex import compile
 
 
 PUNCTUATION_EMOJI = compile(r"[\p{P}\p{Extended_Pictographic}\n]")

@@ -1,0 +1,10 @@
+regex
+PyYAML
+# chinese
+jieba
+opencc-python-reimplemented 
+pypinyin
+# japanese
+jaconv
+fugashi
+fugashi[unidic-lite]

@@ -1,8 +1,9 @@
 from typing import Any
-from regex import compile
-from yaml import safe_load
-from jaconv import kata2hira
 from functools import lru_cache
+
+from ..vendor.regex import compile
+from ..vendor.yaml import safe_load
+from ..vendor.jaconv import kata2hira
 
 from .fugashi_wrapper import Fugashi, FugashiToken
 from ..utils import BaseTokenizer, CACHE_SIZE, BASE_DIR

@@ -1,11 +1,11 @@
 from typing import Optional
 from functools import lru_cache
 
-from jieba import cut
-from opencc import OpenCC
-from pypinyin import lazy_pinyin, Style
-from pypinyin.style.bopomofo import BopomofoConverter
-from pypinyin.contrib.tone_convert import tone_to_tone3
+from ..vendor.jieba import cut
+from ..vendor.opencc import OpenCC
+from ..vendor.pypinyin import lazy_pinyin, Style
+from ..vendor.pypinyin.style.bopomofo import BopomofoConverter
+from ..vendor.pypinyin.contrib.tone_convert import tone_to_tone3
 
 from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, DATA_DIR
 

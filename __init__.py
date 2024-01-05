@@ -1,17 +1,3 @@
-import sys
-import os
-
-# Assuming this file is in the root of your add-on directory
-addon_path = os.path.dirname(__file__)
-lib_path = os.path.join(addon_path, "lib")  # Replace 'lib' with your chosen folder name
-
-sys.path.insert(0, lib_path)
-
-# for subdir in os.listdir(lib_path):
-#     full_subdir_path = os.path.join(lib_path, subdir)
-#     if os.path.isdir(full_subdir_path):
-#         sys.path.insert(0, full_subdir_path)
-
 from aqt.utils import showInfo
 from aqt.editor import Editor
 from .tokenizer import to_migaku
