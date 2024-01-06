@@ -1,6 +1,5 @@
 from typing import Any, Optional
-
-from ..vendor.fugashi import Tagger, UnidicNode
+from fugashi import Tagger, UnidicNode
 
 from ..utils import BaseToken, set_value_space
 

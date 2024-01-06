@@ -1,8 +1,7 @@
-from ..vendor.regex import compile
+import regex
 
-
-PUNCTUATION_EMOJI = compile(r"[\p{P}\p{Extended_Pictographic}\n]")
-PUNCTUATION_EMOJI_SPACE = compile(r"[\p{P}\p{Extended_Pictographic}\n\s]")
+PUNCTUATION_EMOJI = regex.compile(r"[\p{P}\p{Extended_Pictographic}\n]")
+PUNCTUATION_EMOJI_SPACE = regex.compile(r"[\p{P}\p{Extended_Pictographic}\n\s]")
 
 
 def set_value(attribute: str):

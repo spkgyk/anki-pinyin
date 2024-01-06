@@ -1,19 +1,19 @@
+import re
+
 from typing import Any
+from yaml import safe_load
+from jaconv import kata2hira
 from functools import lru_cache
 
-from ..vendor.regex import compile
-from ..vendor.yaml import safe_load
-from ..vendor.jaconv import kata2hira
-
 from .fugashi_wrapper import Fugashi, FugashiToken
-from ..utils import BaseTokenizer, CACHE_SIZE, BASE_DIR
+from ..utils import BaseTokenizer, CACHE_SIZE, DATA_DIR
 
 
-LONG = compile(r"(.)ー")
-NUMBERS = compile(r"[\d]+")
-SMALL_KANA = compile(r"(?![ァィゥェォャュョ]).|ー")
+LONG = re.compile(r"(.)ー")
+NUMBERS = re.compile(r"[\d]+")
+SMALL_KANA = re.compile(r"(?![ァィゥェォャュョ]).|ー")
 
-DATA_PATH = BASE_DIR / "data" / "japanese_exceptions.yml"
+DATA_PATH = DATA_DIR / "japanese_exceptions.yml"
 
 
 # global instances
