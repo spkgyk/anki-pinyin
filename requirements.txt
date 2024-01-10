@@ -1,4 +1,3 @@
-regex
 PyYAML
 # chinese
 jieba
