@@ -1,14 +1,10 @@
 from .chinese import ChineseTokenizer
-from .japanese import JapaneseTokenizer
 
 cn = ChineseTokenizer()
-jp = JapaneseTokenizer()
 
 
 def tokenize(text: str, lang: str):
-    if lang == "jp":
-        return jp.tokenize(text)
-    elif lang == "cn":
+    if lang == "cn":
         return cn.tokenize(text)
 
 

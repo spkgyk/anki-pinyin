@@ -11,7 +11,3 @@ dependencies:
      - jieba
      - opencc-python-reimplemented 
      - pypinyin
-     # japanese
-     - jaconv
-     - fugashi
-     - fugashi[unidic-lite]
