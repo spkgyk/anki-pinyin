@@ -122,7 +122,29 @@ def mass_generate_migaku_browser(source: str, dest: str, output_mode: str, readi
 
 
 def mass_remove_migaku_browser(source: str, notes: Sequence[NoteId], widget: QDialog):
-    pass
+    if not miAsk(
+        f'WARNING\nAre you sure you want to mass remove readings from the "{source}" field?'
+        'Please make sure you have selected the correct field as this will remove all "[" and "]" and text in between from a field.'
+    ):
+        return
+    widget.close()
+    bar = getProgressWidget()
+    bar.setMinimum(0)
+    bar.setMaximum(len(notes))
+    val = 0
+    for nid in notes:
+        note = mw.col.get_note(nid)
+        fields = note.fields
+        if source in fields:
+            text = note[source]
+            text = strip_migaku(text)
+            note[source] = text
+            mw.col.update_note(note)
+        val += 1
+        bar.setValue(val)
+        mw.app.processEvents()
+    mw.progress.finish()
+    mw.reset()
 
 
 def browser_menu(browser: Browser):
