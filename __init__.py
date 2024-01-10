@@ -74,7 +74,7 @@ def getProgressWidget():
     return bar
 
 
-def applyOM(self, addType: str, dest: str, text: str):
+def applyOM(addType: str, dest: str, text: str):
     if text:
         if addType == "If Empty":
             if dest == "":
