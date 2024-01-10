@@ -15,5 +15,6 @@ from .functions import (
     set_value_space,
     set_value,
 )
+from .reading_type import ReadingType
 
 CACHE_SIZE = 500000

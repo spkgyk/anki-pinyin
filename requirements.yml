@@ -3,11 +3,11 @@ dependencies:
  - pip
  - pip:
     #  - -i https://pypi.tuna.tsinghua.edu.cn/simple
-     - regex
-     - PyYAML
      - mypy
+     - PyYAML
      - aqt[qt6]
      # chinese
      - jieba
-     - opencc-python-reimplemented 
      - pypinyin
+     - pycantonese
+     - opencc-python-reimplemented 

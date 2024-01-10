@@ -1,5 +1,6 @@
 PyYAML
 # chinese
 jieba
-opencc-python-reimplemented 
 pypinyin
+pycantonese
+opencc-python-reimplemented 

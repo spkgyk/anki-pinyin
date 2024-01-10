@@ -6,7 +6,7 @@ from pypinyin import lazy_pinyin, Style
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 
-from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, VENDOR_DIR, SQUARE_BR
+from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, VENDOR_DIR, SQUARE_BR, ReadingType
 
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
@@ -25,11 +25,12 @@ with _simp_trad_map_path.open("r") as f:
 
 
 class MandarinToken(BaseToken):
-    def __init__(self, word: str, is_simplified: bool):
+    def __init__(self, word: str, is_simplified: bool, reading_type: ReadingType.PINYIN):
         super().__init__()
 
         self.surface: str = word
         self.migaku_token: str = self.surface
+        self.reading_type: ReadingType = reading_type
 
         self.token: Optional[str] = set_value_space(self.surface)
         self.tones: Optional[str] = None
@@ -49,7 +50,14 @@ class MandarinToken(BaseToken):
                 else:
                     self.alternate_form = _open_cc_trad2simp.convert(self.token)
 
-                self.migaku_token = "{}[{}]".format(self.surface, " ".join(self.tones))
+                reading = self.tones
+                if reading_type == ReadingType.BOPOMOFO:
+                    reading = self.zhuyin
+                elif reading_type == ReadingType.JYUTPING:
+                    # not implemented yet
+                    pass
+
+                self.migaku_token = "{}[{}]".format(self.surface, " ".join(reading))
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
@@ -74,13 +82,13 @@ class ChineseTokenizer(BaseTokenizer):
     def strip_migaku(text: str):
         return SQUARE_BR.sub("", text)
 
-    def tokenize(self, text: str):
+    def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
         text = self.strip_migaku(text)
         is_simp = any(c in all_simp_chars for c in text)
-        tokens = [MandarinToken(x, is_simp) for x in cut(text.strip())]
+        tokens = [MandarinToken(x, is_simp, reading_type) for x in cut(text.strip())]
         return tokens
 
-    def to_migaku(self, text: str):
-        tokens = self.tokenize(text)
+    def to_migaku(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
+        tokens = self.tokenize(text, reading_type)
         output = "".join(token.migaku_token for token in tokens)
         return output
