@@ -14,7 +14,8 @@ def onHotkeyPressed(editor: Editor):
 
 
 def setupEditorButtonsFilter(editor: Editor, buttons, *args):
-    editor._addButton("myHotkeyButton", lambda editor=editor: onHotkeyPressed(editor), "F10", tip="Activate my_func (F10)", keys="F10")
+    showInfo("myHotkeyButton added")
+    editor.addButton("myHotkeyButton", lambda editor=editor: onHotkeyPressed(editor), "F10", tip="Activate my_func (F10)", keys="F10")
     return buttons
 
 
