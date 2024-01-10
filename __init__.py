@@ -7,7 +7,7 @@ from .tokenizer import (
 from aqt import mw
 from aqt.qt import *
 from aqt.utils import showInfo
-from anki.hooks import addHook
+from aqt import gui_hooks
 from aqt.editor import Editor
 
 
@@ -27,24 +27,28 @@ def strip_migaku_editor(editor: Editor):
     editor.loadNoteKeepingFocus()  # Refresh the editor
 
 
-def add_my_button(buttons, editor: Editor):
-    editor._links["to_migaku"] = lambda editor=editor: generate_migaku_editor(editor)
-    editor._links["strip_migaku"] = lambda editor=editor: strip_migaku_editor(editor)
-    generate_button = editor.addButton(
-        icon=str(BASE_DIR / "icons/simpDu.svg"),  # Path to an icon if you have one
-        cmd="to_migaku",
-        func=lambda editor=editor: generate_migaku_editor(editor),
-        tip="Generate pinyin in the Migaku format",  # Hover tooltip
-        keys="f9",  # Shortcut (optional)
+def add_my_button(buttons: list[str], editor: Editor):
+    editor._links["generate_migaku_editor"] = lambda editor=editor: generate_migaku_editor(editor)
+    editor._links["strip_migaku_editor"] = lambda editor=editor: strip_migaku_editor(editor)
+    buttons.append(
+        editor.addButton(
+            icon=str(BASE_DIR / "icons/simpDu.svg"),  # Path to an icon if you have one
+            cmd="to_migaku",
+            func=editor._links["generate_migaku_editor"],
+            tip="Generate pinyin in the Migaku format",  # Hover tooltip
+            keys="f9",  # Shortcut (optional)
+        )
     )
-    strip_button = editor.addButton(
-        icon=str(BASE_DIR / "icons/simpShan.svg"),  # Path to an icon if you have one
-        cmd="strip_migaku",
-        func=lambda editor=editor: strip_migaku_editor(editor),
-        tip="Strip the Migaku format from the text",  # Hover tooltip
-        keys="f10",  # Shortcut (optional)
+    buttons.append(
+        editor.addButton(
+            icon=str(BASE_DIR / "icons/simpShan.svg"),  # Path to an icon if you have one
+            cmd="strip_migaku",
+            func=editor._links["strip_migaku_editor"],
+            tip="Strip the Migaku format from the text",  # Hover tooltip
+            keys="f10",  # Shortcut (optional)
+        )
     )
-    return buttons + [generate_button, strip_button]
+    return buttons
 
 
-addHook("setupEditorButtons", add_my_button)
+gui_hooks.editor_did_init_buttons.append(add_my_button)
