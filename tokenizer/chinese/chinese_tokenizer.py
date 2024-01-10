@@ -71,11 +71,11 @@ class MandarinToken(BaseToken):
 
 class ChineseTokenizer(BaseTokenizer):
     @staticmethod
-    def _preprocess(text: str):
+    def strip_migaku(text: str):
         return SQUARE_BR.sub("", text)
 
     def tokenize(self, text: str):
-        text = self._preprocess(text)
+        text = self.strip_migaku(text)
         is_simp = any(c in all_simp_chars for c in text)
         tokens = [MandarinToken(x, is_simp) for x in cut(text.strip())]
         return tokens

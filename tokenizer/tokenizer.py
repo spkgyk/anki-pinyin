@@ -9,5 +9,10 @@ def tokenize(text: str, lang: str):
 
 
 def to_migaku(text: str, lang: str):
-    tokens = tokenize(text, lang)
-    return "".join(token.migaku_token for token in tokens)
+    if lang == "cn":
+        return cn.to_migaku(text)
+
+
+def strip_migaku(text: str, lang: str):
+    if lang == "cn":
+        return cn.strip_migaku(text)
