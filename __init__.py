@@ -10,7 +10,7 @@ from aqt.editor import Editor
 def on_button_clicked(editor: Editor):
     id = editor.currentField
     selected_text = editor.note.fields[id]
-    modified_text = to_migaku(selected_text, 'cn')
+    modified_text = to_migaku(selected_text, "cn")
     editor.note.fields[id] = modified_text
     editor.loadNoteKeepingFocus()  # Refresh the editor
 
@@ -18,7 +18,7 @@ def on_button_clicked(editor: Editor):
 def add_my_button(buttons, editor: Editor):
     editor._links["to_migaku"] = lambda editor=editor: on_button_clicked(editor)
     button = editor.addButton(
-        icon=str(BASE_DIR/"icons/simpDu.svg"),  # Path to an icon if you have one
+        icon=str(BASE_DIR / "icons/simpDu.svg"),  # Path to an icon if you have one
         cmd="to_migaku",
         func=lambda editor=editor: on_button_clicked(editor),
         tip="Generate pinyin in the Migaku format",  # Hover tooltip
@@ -28,4 +28,3 @@ def add_my_button(buttons, editor: Editor):
 
 
 addHook("setupEditorButtons", add_my_button)
-

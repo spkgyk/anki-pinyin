@@ -6,12 +6,12 @@ from pypinyin import lazy_pinyin, Style
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 
-from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, DATA_DIR, SQUARE_BR
+from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, VENDOR_DIR, SQUARE_BR
 
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
 _open_cc_trad2simp = OpenCC("t2s")
-_simp_trad_map_path = DATA_DIR / "simp_trad_characters.txt"
+_simp_trad_map_path = VENDOR_DIR / "opencc" / "dictionary" / "STCharacters.txt"
 
 simp_trad_map = {}
 all_simp_chars = ""
@@ -71,9 +71,9 @@ class MandarinToken(BaseToken):
 
 class ChineseTokenizer(BaseTokenizer):
     @staticmethod
-    def _preprocess(text:str):
-        return SQUARE_BR.sub('',text)
-        
+    def _preprocess(text: str):
+        return SQUARE_BR.sub("", text)
+
     def tokenize(self, text: str):
         text = self._preprocess(text)
         is_simp = any(c in all_simp_chars for c in text)

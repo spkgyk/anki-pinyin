@@ -10,7 +10,7 @@ emoji_pattern = (
 newline = r"\n"
 space_newline = r"\s\n"
 
-SQUARE_BR = re.compile(r'\[.*?\]')
+SQUARE_BR = re.compile(r"\[.*?\]")
 PUNCTUATION_EMOJI = re.compile(f"[{punctuation_pattern}{emoji_pattern}{newline}]")
 PUNCTUATION_EMOJI_SPACE = re.compile(f"[{punctuation_pattern}{emoji_pattern}{space_newline}]")
 
