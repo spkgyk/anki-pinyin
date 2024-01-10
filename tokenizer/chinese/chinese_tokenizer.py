@@ -39,7 +39,7 @@ class MandarinToken(BaseToken):
 
         if self.token:
             pinyin = self._gen_pinyin(word)
-            if pinyin != self.surface:
+            if pinyin and pinyin[0] != self.surface:
                 self.pinyin = pinyin
                 self.zhuyin = [self._to_zhuyin(p) for p in pinyin]
                 self.tones = [self._to_tone(p) for p in pinyin]
