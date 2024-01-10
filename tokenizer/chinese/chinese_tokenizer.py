@@ -3,10 +3,20 @@ from opencc import OpenCC
 from typing import Optional
 from functools import lru_cache
 from pypinyin import lazy_pinyin, Style
+from pycantonese import characters_to_jyutping
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 
-from ..utils import BaseToken, BaseTokenizer, set_value_space, CACHE_SIZE, VENDOR_DIR, SQUARE_BR, ReadingType
+from ..utils import (
+    BaseTokenizer,
+    ReadingType,
+    BaseToken,
+    set_value_space,
+    CACHE_SIZE,
+    VENDOR_DIR,
+    SQUARE_BR,
+    NUMBERS,
+)
 
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
@@ -36,10 +46,12 @@ class MandarinToken(BaseToken):
         self.tones: Optional[str] = None
         self.pinyin: Optional[str] = None
         self.zhuyin: Optional[str] = None
+        self.jyutping: Optional[str] = None
         self.alternate_form: Optional[str] = None
 
         if self.token:
             pinyin = self._gen_pinyin(word)
+            jyutping = self._gen_jyutping(word)
             if pinyin and pinyin[0] != self.surface:
                 self.pinyin = pinyin
                 self.zhuyin = [self._to_zhuyin(p) for p in pinyin]
@@ -53,11 +65,15 @@ class MandarinToken(BaseToken):
                 reading = self.tones
                 if reading_type == ReadingType.BOPOMOFO:
                     reading = self.zhuyin
-                elif reading_type == ReadingType.JYUTPING:
-                    # not implemented yet
-                    pass
 
-                self.migaku_token = "{}[{}]".format(self.surface, " ".join(reading))
+                if reading_type != ReadingType.JYUTPING:
+                    self.migaku_token = "{}[{}]".format(self.surface, " ".join(reading))
+
+            if jyutping and jyutping[0] != self.surface:
+                self.jyutping = jyutping
+
+                if reading_type == ReadingType.JYUTPING:
+                    self.migaku_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
@@ -65,6 +81,16 @@ class MandarinToken(BaseToken):
         pinyin_output: list[str] = lazy_pinyin(token, style=Style.TONE)
         pinyin_output = [cleaned for cleaned in (set_value_space(char) for char in pinyin_output) if cleaned] or None
         return pinyin_output
+
+    @staticmethod
+    @lru_cache(CACHE_SIZE)
+    def _gen_jyutping(token: str):
+        jyutping_output = [x[-1] for x in characters_to_jyutping(token) if x and x[-1]] or None
+        if jyutping_output:
+            _list = []
+            [_list.extend(NUMBERS.split(char)) for char in jyutping_output]
+            jyutping_output = _list
+        return jyutping_output
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
@@ -84,7 +110,7 @@ class ChineseTokenizer(BaseTokenizer):
 
     def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
         text = self.strip_migaku(text)
-        is_simp = any(c in all_simp_chars for c in text)
+        is_simp = any(c in all_simp_chars for c in text) if reading_type != ReadingType.JYUTPING else False
         tokens = [MandarinToken(x, is_simp, reading_type) for x in cut(text.strip())]
         return tokens
 

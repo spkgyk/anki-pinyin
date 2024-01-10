@@ -4,9 +4,9 @@ from .utils import ReadingType
 cn = ChineseTokenizer()
 
 
-def tokenize(text: str, lang: str):
+def tokenize(text: str, lang: str, reading_type: ReadingType):
     if lang == "cn":
-        return cn.tokenize(text)
+        return cn.tokenize(text, reading_type)
 
 
 def to_migaku(text: str, lang: str, reading_type: ReadingType):

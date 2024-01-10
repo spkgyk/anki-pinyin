@@ -1,8 +1,11 @@
-from tokenizer import tokenize, to_migaku
+from tokenizer import tokenize, to_migaku, ReadingType
 
+cn_text = "佢講嘅政策都係空談，唔會真正幫到草根市民。"
+x = tokenize(cn_text, "cn", ReadingType.JYUTPING)
+[print(token) for token in x]
 
-cn_text = "Hello, world! 😊 こんにちは、世界[shi4 jie4]！🌏 你好[ni3 hao3]，世界[shi4 jie4]！🐉"
-x = tokenize(cn_text, "cn")
-# [print(token) for token in x]
-
-print(to_migaku(cn_text, "cn"))
+print(to_migaku(cn_text, "cn", ReadingType.JYUTPING))
+print(to_migaku(cn_text, "cn", ReadingType.JYUTPING))
+print(to_migaku(cn_text, "cn", ReadingType.JYUTPING))
+print(to_migaku(cn_text, "cn", ReadingType.JYUTPING))
+print(to_migaku(cn_text, "cn", ReadingType.JYUTPING))
