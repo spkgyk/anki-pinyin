@@ -18,6 +18,7 @@ find vendor -type d -name "test" -exec rm -rf {} +
 find vendor -type f -name "*.pyc" -delete
 find vendor -type d \( -name "examples" -o -name "demos" -o -name "samples" \) -exec rm -rf {} +
 find vendor -type f \( -name ".travis.yml" -o -name "setup.py" -o -name "Makefile" -o -name "build.sh" \) -delete
+find vendor -type d -name "*.dist-info" -not -path "*pylangacq*" -exec rm -rf {} +
 rm -rf vendor/_yaml
 rm -rf vendor/bin
 black . --line-length=140
