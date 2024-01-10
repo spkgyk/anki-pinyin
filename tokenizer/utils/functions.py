@@ -7,9 +7,10 @@ emoji_pattern = (
     r"\U0001F680-\U0001F6FF"  # Transport and Map Symbols
     r"\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
 )
-newline = "\n"
-space_newline = "\s\n"
+newline = r"\n"
+space_newline = r"\s\n"
 
+SQUARE_BR = re.compile(r'\[.*?\]')
 PUNCTUATION_EMOJI = re.compile(f"[{punctuation_pattern}{emoji_pattern}{newline}]")
 PUNCTUATION_EMOJI_SPACE = re.compile(f"[{punctuation_pattern}{emoji_pattern}{space_newline}]")
 

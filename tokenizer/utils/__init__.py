@@ -11,6 +11,7 @@ from .paths import (
 from .functions import (
     PUNCTUATION_EMOJI_SPACE,
     PUNCTUATION_EMOJI,
+    SQUARE_BR,
     set_value_space,
     set_value,
 )

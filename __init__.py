@@ -1,30 +1,31 @@
+from .tokenizer import to_migaku, BASE_DIR
+
+from aqt import mw
+from aqt.qt import *
 from aqt.utils import showInfo
+from anki.hooks import addHook
 from aqt.editor import Editor
-from .tokenizer import to_migaku
 
 
-def onHotkeyPressed(editor: Editor):
-    currentField = editor.currentField
-    if currentField is not None:
-        original_text = editor.note.fields[currentField]
-        editor.note.fields[currentField] = to_migaku(original_text)
-        editor.loadNote()
-    else:
-        showInfo("No field selected")
+def on_button_clicked(editor: Editor):
+    id = editor.currentField
+    selected_text = editor.note.fields[id]
+    modified_text = to_migaku(selected_text, 'cn')
+    editor.note.fields[id] = modified_text
+    editor.loadNoteKeepingFocus()  # Refresh the editor
 
 
-def setupEditorButtonsFilter(editor: Editor, buttons, *args):
-    showInfo("myHotkeyButton added")
-    editor.addButton("myHotkeyButton", lambda editor=editor: onHotkeyPressed(editor), "F10", tip="Activate my_func (F10)", keys="F10")
-    return buttons
+def add_my_button(buttons, editor: Editor):
+    editor._links["to_migaku"] = lambda editor=editor: on_button_clicked(editor)
+    button = editor.addButton(
+        icon=str(BASE_DIR/"icons/simpDu.svg"),  # Path to an icon if you have one
+        cmd="to_migaku",
+        func=lambda editor=editor: on_button_clicked(editor),
+        tip="Generate pinyin in the Migaku format",  # Hover tooltip
+        keys="f9",  # Shortcut (optional)
+    )
+    return buttons + [button]
 
 
-def addHook(editor: Editor):
-    editor._links["myHotkeyButton"] = onHotkeyPressed
+addHook("setupEditorButtons", add_my_button)
 
-
-# Hook into the editor
-from aqt.gui_hooks import editor_did_init_shortcuts, editor_did_init_buttons
-
-editor_did_init_shortcuts.append(addHook)
-editor_did_init_buttons.append(setupEditorButtonsFilter)
