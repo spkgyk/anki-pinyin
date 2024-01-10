@@ -1,6 +1,6 @@
-from sys import path
-from os.path import join, dirname
+from .utils import add_to_path, VENDOR_DIR
 
-path.append(join(dirname(__file__), "vendor"))
+# add vendor to path
+add_to_path(VENDOR_DIR)
 
 from .tokenizer import tokenize, to_migaku
