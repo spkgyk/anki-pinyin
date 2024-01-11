@@ -1,5 +1,6 @@
 name: anki-pinyin
 dependencies:
+ - python=3.9.15
  - pip
  - pip:
     #  - -i https://pypi.tuna.tsinghua.edu.cn/simple
