@@ -80,8 +80,11 @@ class ChineseSettings(QDialog):
 
     def load_default_config(self):
         if yes_no_window("Are you sure you would like to restore the default settings? This cannot be undone."):
-            conf = mw.addonManager.addonConfigDefaults(dirname(__file__))
-            mw.addonManager.writeConfig(__name__, conf)
+            new_config = {
+                "reading_type": ReadingType.PINYIN_TONES.value,
+                "traditional_icons": False,
+            }
+            mw.addonManager.writeConfig(__name__, new_config)
             self.close()
 
     @classmethod
