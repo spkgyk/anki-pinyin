@@ -24,53 +24,53 @@ def info_window(text, parent=False, level="msg", day=True):
     if parent is False:
         parent = mw.app.activeWindow() or mw
     icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
-    mb = QMessageBox(parent)
+    message_box = QMessageBox(parent)
     if not day:
-        mb.setStyleSheet(" QMessageBox {background-color: #272828;}")
-    mb.setText(text)
-    mb.setWindowIcon(icon)
-    mb.setWindowTitle(title)
-    b = mb.addButton(QMessageBox.StandardButton.Ok)
-    b.setFixedSize(100, 30)
-    b.setDefault(True)
+        message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
+    message_box.setText(text)
+    message_box.setWindowIcon(icon)
+    message_box.setWindowTitle(title)
+    button = message_box.addButton(QMessageBox.StandardButton.Ok)
+    button.setFixedSize(100, 30)
+    button.setDefault(True)
 
-    return mb.exec()
+    return message_box.exec()
 
 
 def yes_no_window(text, parent=None, day=True):
-    msg = QMessageBox(parent)
-    msg.setWindowTitle("Select")
-    msg.setText(text)
+    message_box = QMessageBox(parent)
+    message_box.setWindowTitle("Select")
+    message_box.setText(text)
     icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
-    b = msg.addButton(QMessageBox.StandardButton.Yes)
-    b.setFixedSize(100, 30)
-    b.setDefault(True)
-    c = msg.addButton(QMessageBox.StandardButton.No)
-    c.setFixedSize(100, 30)
+    yes_button = message_box.addButton(QMessageBox.StandardButton.Yes)
+    yes_button.setFixedSize(100, 30)
+    yes_button.setDefault(True)
+    no_button = message_box.addButton(QMessageBox.StandardButton.No)
+    no_button.setFixedSize(100, 30)
     if not day:
-        msg.setStyleSheet(" QMessageBox {background-color: #272828;}")
-    msg.setWindowIcon(icon)
-    msg.exec()
-    if msg.clickedButton() == b:
+        message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
+    message_box.setWindowIcon(icon)
+    message_box.exec()
+    if message_box.clickedButton() == yes_button:
         return True
     else:
         return False
 
 
 def get_progress_bar_widget(length: int):
-    progressWidget = QWidget(None)
-    progressWidget.setFixedSize(400, 70)
-    progressWidget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progressWidget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
-    bar = QProgressBar(progressWidget)
+    progress_widget = QWidget(None)
+    progress_widget.setFixedSize(400, 70)
+    progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
+    progress_widget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
+    bar = QProgressBar(progress_widget)
     bar.setFixedSize(390, 50)
     bar.move(10, 10)
-    per = QLabel(bar)
-    per.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    progressWidget.show()
+    bar_label = QLabel(bar)
+    bar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    progress_widget.show()
     bar.setMinimum(0)
     bar.setMaximum(length)
-    return progressWidget, bar
+    return progress_widget, bar
 
 
 def apply_output_mode(addType: str, dest: str, text: str):
@@ -93,7 +93,7 @@ def browser_mass_generate_readings(source: str, dest: str, output_mode: str, rea
     if not yes_no_window('Extract characters from the "' + source + '" field\nand use to generate readings in the "' + dest + '" field?'):
         return
     widget.close()
-    progressWidget, bar = get_progress_bar_widget(len(notes))
+    progress_widget, bar = get_progress_bar_widget(len(notes))
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
@@ -113,7 +113,7 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     ):
         return
     widget.close()
-    progressWidget, bar = get_progress_bar_widget(len(notes))
+    progress_widget, bar = get_progress_bar_widget(len(notes))
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
