@@ -10,19 +10,17 @@ from aqt.editor import Editor
 
 
 def editor_generate_readings(editor: Editor):
-    id = editor.currentField
-    selected_text = editor.note.fields[id]
-    modified_text = gen_display_format(selected_text, "cn", ReadingType.PINYIN)
-    editor.note.fields[id] = modified_text
-    editor.loadNoteKeepingFocus()  # Refresh the editor
+    current_field_id = editor.currentField
+    selected_text = editor.note.fields[current_field_id]
+    editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", ReadingType.PINYIN)
+    editor.loadNoteKeepingFocus()
 
 
 def editor_strip_readings(editor: Editor):
-    id = editor.currentField
-    selected_text = editor.note.fields[id]
-    modified_text = strip_display_format(selected_text, "cn")
-    editor.note.fields[id] = modified_text
-    editor.loadNoteKeepingFocus()  # Refresh the editor
+    current_field_id = editor.currentField
+    selected_text = editor.note.fields[current_field_id]
+    editor.note.fields[current_field_id] = strip_display_format(selected_text, "cn")
+    editor.loadNoteKeepingFocus()
 
 
 def add_my_button(buttons: list[str], editor: Editor):
