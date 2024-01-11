@@ -23,7 +23,7 @@ def editor_strip_readings(editor: Editor):
         editor.loadNoteKeepingFocus()
 
 
-def add_my_button(buttons: list[str], editor: Editor):
+def add_editor_buttons(buttons: list[str], editor: Editor):
     config = mw.addonManager.getConfig(__name__)
     du_icon = str(DATA_DIR / "icons" / "simpDu.svg")
     shan_icon = str(DATA_DIR / "icons" / "simpShan.svg")

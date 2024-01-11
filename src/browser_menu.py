@@ -129,7 +129,7 @@ def browser_menu(browser: Browser):
         info_window("Please select some cards before attempting to mass generate.")
 
 
-def setup_browser_menu(browser: Browser):
+def add_browser_menu(browser: Browser):
     a = QAction("Generate Chinese Readings", browser)
     a.triggered.connect(lambda: browser_menu(browser))
     menu_edit: QMenu = browser.form.menuEdit
