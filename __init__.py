@@ -65,14 +65,14 @@ def getProgressWidget():
     progressWidget = QWidget(None)
     progressWidget.setFixedSize(400, 70)
     progressWidget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progressWidget.setWindowIcon(QIcon(str(BASE_DIR, "icons", "migaku.png")))
+    progressWidget.setWindowIcon(QIcon(str(BASE_DIR / "icons" / "migaku.png")))
     bar = QProgressBar(progressWidget)
     bar.setFixedSize(390, 50)
     bar.move(10, 10)
     per = QLabel(bar)
     per.setAlignment(Qt.AlignmentFlag.AlignCenter)
     progressWidget.show()
-    return bar
+    return progressWidget, bar
 
 
 def applyOM(addType: str, dest: str, text: str):
@@ -103,13 +103,13 @@ def mass_generate_migaku_browser(source: str, dest: str, output_mode: str, readi
     if not miAsk('Are you sure you want to generate from the "' + source + '" field into  the "' + dest + '" field?.'):
         return
     widget.close()
-    bar = getProgressWidget()
+    progressWidget, bar = getProgressWidget()
     bar.setMinimum(0)
     bar.setMaximum(len(notes))
     val = 0
     for nid in notes:
         note = mw.col.get_note(nid)
-        fields = note.fields
+        fields = mw.col.models.field_names(note.note_type())
         if source in fields and dest in fields:
             text = note[source]
             newText = to_migaku(text, "cn", ReadingType(reading_type))
@@ -119,7 +119,6 @@ def mass_generate_migaku_browser(source: str, dest: str, output_mode: str, readi
         bar.setValue(val)
         mw.app.processEvents()
     mw.progress.finish()
-    mw.reset()
 
 
 def mass_remove_migaku_browser(source: str, notes: Sequence[NoteId], widget: QDialog):
@@ -129,30 +128,28 @@ def mass_remove_migaku_browser(source: str, notes: Sequence[NoteId], widget: QDi
     ):
         return
     widget.close()
-    bar = getProgressWidget()
+    progressWidget, bar = getProgressWidget()
     bar.setMinimum(0)
     bar.setMaximum(len(notes))
     val = 0
     for nid in notes:
         note = mw.col.get_note(nid)
-        fields = note.fields
+        fields = mw.col.models.field_names(note.note_type())
         if source in fields:
             text = note[source]
-            text = strip_migaku(text, "cn")
-            note[source] = text
+            note[source] = strip_migaku(text, "cn")
             mw.col.update_note(note)
         val += 1
         bar.setValue(val)
         mw.app.processEvents()
     mw.progress.finish()
-    mw.reset()
 
 
 def browser_menu(browser: Browser):
-    notes = browser.selectedNotes()
+    notes = browser.selected_notes()
 
     if notes:
-        fields = fieldNamesForNotes(mw.col, notes)
+        fields = mw.col.field_names_for_note_ids(notes)
         generateWidget = QDialog(None, Qt.WindowType.Window)
         layout = QHBoxLayout()
         origin_label = QLabel("Origin:")
@@ -173,7 +170,7 @@ def browser_menu(browser: Browser):
                 source_cb.currentText(),
                 dest_cb.currentText(),
                 output_mode_cb.currentText(),
-                reading_type_cb.currentText().lower(),
+                reading_type_cb.currentText(),
                 notes,
                 generateWidget,
             )
