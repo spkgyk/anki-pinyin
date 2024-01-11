@@ -3,7 +3,9 @@ from .paths import (
     VENDOR_DIR,
     DATA_DIR,
     BASE_DIR,
+    ICON_DIR,
     SRC_DIR,
+    JS_DIR,
 )
 from .functions import (
     PUNCTUATION_EMOJI_SPACE,

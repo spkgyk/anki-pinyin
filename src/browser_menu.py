@@ -1,61 +1,12 @@
-from . import (
-    ReadingType,
-    OutputMode,
-    strip_display_format,
-    gen_display_format,
-    DATA_DIR,
-)
+from .utils import ReadingType, OutputMode, DATA_DIR
+from .user_messages import yes_no_window, info_window
+from .tokenizer import strip_display_format, gen_display_format
 
 from aqt import mw
 from aqt.qt import *
 from typing import Sequence
 from anki.notes import NoteId
 from aqt.browser import Browser
-
-
-def info_window(text, parent=False, level="msg", day=True):
-    if level == "wrn":
-        title = "Warning"
-    elif level == "not":
-        title = "Notice"
-    elif level == "err":
-        title = "Error"
-    else:
-        title = "Info"
-    if parent is False:
-        parent = mw.app.activeWindow() or mw
-    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
-    message_box = QMessageBox(parent)
-    if not day:
-        message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
-    message_box.setText(text)
-    message_box.setWindowIcon(icon)
-    message_box.setWindowTitle(title)
-    button = message_box.addButton(QMessageBox.StandardButton.Ok)
-    button.setFixedSize(100, 30)
-    button.setDefault(True)
-
-    return message_box.exec()
-
-
-def yes_no_window(text, parent=None, day=True):
-    message_box = QMessageBox(parent)
-    message_box.setWindowTitle("Select")
-    message_box.setText(text)
-    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
-    yes_button = message_box.addButton(QMessageBox.StandardButton.Yes)
-    yes_button.setFixedSize(100, 30)
-    yes_button.setDefault(True)
-    no_button = message_box.addButton(QMessageBox.StandardButton.No)
-    no_button.setFixedSize(100, 30)
-    if not day:
-        message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
-    message_box.setWindowIcon(icon)
-    message_box.exec()
-    if message_box.clickedButton() == yes_button:
-        return True
-    else:
-        return False
 
 
 def get_progress_bar_widget(length: int):
