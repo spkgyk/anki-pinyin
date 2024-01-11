@@ -32,9 +32,11 @@ with _simp_trad_map_path.open("r") as f:
         all_simp_chars += simp
         simp_trad_map[simp] = trads.split(" ")
 
+zhuyin_tone_numbers = {"ˊ": "2", "ˇ": "3", "ˋ": "4", "˙": "5"}
+
 
 class MandarinToken(BaseToken):
-    def __init__(self, word: str, is_simplified: bool, reading_type: ReadingType.PINYIN):
+    def __init__(self, word: str, is_simplified: bool, reading_type: ReadingType.PINYIN_ACCENTS):
         super().__init__()
 
         self.surface: str = word
@@ -42,7 +44,7 @@ class MandarinToken(BaseToken):
         self.reading_type: ReadingType = reading_type
 
         self.token: Optional[str] = set_value_space(self.surface)
-        self.tones: Optional[str] = None
+        self.pinyin_tones: Optional[str] = None
         self.pinyin: Optional[str] = None
         self.zhuyin: Optional[str] = None
         self.jyutping: Optional[str] = None
@@ -54,24 +56,28 @@ class MandarinToken(BaseToken):
             if pinyin and pinyin[0] != self.surface:
                 self.pinyin = pinyin
                 self.zhuyin = [self._to_zhuyin(p) for p in pinyin]
-                self.tones = [self._to_tone(p) for p in pinyin]
+                self.pinyin_tones = [self._to_pinyin_tone(p) for p in pinyin]
+                self.zhuyin_tones = [self._to_zhuyin_tone(p) for p in self.zhuyin]
 
                 if is_simplified:
                     self.alternate_form = _open_cc_simp2trad.convert(self.token)
                 else:
                     self.alternate_form = _open_cc_trad2simp.convert(self.token)
 
-                reading = self.tones
-                if reading_type == ReadingType.ZHUYIN:
+                reading = self.pinyin
+                if reading_type == ReadingType.PINYIN_TONES:
+                    reading = self.pinyin_tones
+                elif reading_type == ReadingType.ZHUYIN_ACCENTS:
                     reading = self.zhuyin
-
-                if reading_type != ReadingType.JYUTPING:
-                    self.display_token = "{}[{}]".format(self.surface, " ".join(reading))
+                elif reading_type == ReadingType.ZHUYIN_TONES:
+                    reading = self.zhuyin_tones
 
                 if jyutping and jyutping[0] != self.surface:
                     self.jyutping = jyutping
 
-                if self.jyutping and reading_type == ReadingType.JYUTPING:
+                if reading_type != ReadingType.JYUTPING:
+                    self.display_token = "{}[{}]".format(self.surface, " ".join(reading))
+                elif self.jyutping and reading_type == ReadingType.JYUTPING:
                     self.display_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
 
     @staticmethod
@@ -82,6 +88,7 @@ class MandarinToken(BaseToken):
         return pinyin_output
 
     @staticmethod
+    @lru_cache(CACHE_SIZE)
     def _gen_jyutping(token: str):
         jyutping_output = [x[-1] for x in get_jyutping_list(token) if x and x[-1]] or None
         if jyutping_output:
@@ -95,8 +102,18 @@ class MandarinToken(BaseToken):
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
-    def _to_tone(char: str):
+    def _to_pinyin_tone(char: str):
         return tone_to_tone3(char, v_to_u=False, neutral_tone_with_five=True)
+
+    @staticmethod
+    @lru_cache(CACHE_SIZE)
+    def _to_zhuyin_tone(char: str):
+        last = char[-1:]
+        if last in zhuyin_tone_numbers:
+            char = char[:-1] + zhuyin_tone_numbers[last]
+        else:
+            char += "1"
+        return char
 
 
 class ChineseTokenizer(BaseTokenizer):
@@ -104,13 +121,13 @@ class ChineseTokenizer(BaseTokenizer):
     def strip_display_format(text: str):
         return SQUARE_BR.sub("", text)
 
-    def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
+    def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         text = self.strip_display_format(text)
         is_simp = any(c in all_simp_chars for c in text) if reading_type != ReadingType.JYUTPING else False
         tokens = [MandarinToken(x, is_simp, reading_type) for x in cut(text.strip())]
         return tokens
 
-    def gen_display_format(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
+    def gen_display_format(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         tokens = self.tokenize(text, reading_type)
         output = "".join(token.display_token for token in tokens)
         return output

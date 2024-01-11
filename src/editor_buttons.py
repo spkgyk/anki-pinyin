@@ -16,9 +16,8 @@ def editor_generate_readings(editor: Editor):
     if current_field_id:
         config = mw.addonManager.getConfig(__name__)
         selected_text = editor.note.fields[current_field_id]
-        editor.note.fields[current_field_id] = gen_display_format(
-            selected_text, "cn", ReadingType(config.get("ReadingType", ReadingType.PINYIN))
-        )
+        reading_type = ReadingType(config.get("ReadingType", ReadingType.PINYIN_TONES))
+        editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", reading_type)
         editor.loadNoteKeepingFocus()
 
 

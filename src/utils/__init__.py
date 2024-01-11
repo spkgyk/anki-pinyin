@@ -14,6 +14,7 @@ from .functions import (
     set_value,
 )
 from .reading_type import ReadingType
+from .output_mode import OutputMode
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)

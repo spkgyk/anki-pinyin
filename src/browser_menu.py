@@ -1,5 +1,6 @@
 from . import (
     ReadingType,
+    OutputMode,
     strip_display_format,
     gen_display_format,
     DATA_DIR,
@@ -73,12 +74,12 @@ def get_progress_bar_widget(length: int):
     return progress_widget, bar
 
 
-def apply_output_mode(addType: str, dest: str, text: str):
+def apply_output_mode(output_mode: OutputMode, dest: str, text: str):
     if text:
-        if addType == "If Empty":
+        if output_mode == OutputMode.IF_EMPTY:
             if dest == "":
                 dest = text
-        elif addType == "Append":
+        elif output_mode == OutputMode.APPEND:
             if dest == "":
                 dest = text
             else:
@@ -99,7 +100,7 @@ def browser_mass_generate_readings(source: str, dest: str, output_mode: str, rea
         fields = mw.col.models.field_names(note.note_type())
         if source in fields and dest in fields:
             newText = gen_display_format(note[source], "cn", ReadingType(reading_type))
-            note[dest] = apply_output_mode(output_mode, note[dest], newText)
+            note[dest] = apply_output_mode(OutputMode(output_mode), note[dest], newText)
             mw.col.update_note(note)
         bar.setValue(i)
         mw.app.processEvents()
@@ -140,10 +141,10 @@ def browser_menu(browser: Browser):
         dest_cb.addItems(fields)
         output_mode_label = QLabel("Output Mode:")
         output_mode_cb = QComboBox()
-        output_mode_cb.addItems(["Append", "Overwrite", "If Empty"])
+        output_mode_cb.addItems(sorted([m.value for m in OutputMode]))
         reading_type_label = QLabel("Reading Type:")
         reading_type_cb = QComboBox()
-        reading_type_cb.addItems(["Pinyin", "Zhuyin", "Jyutping"])
+        reading_type_cb.addItems(sorted([t.value for t in ReadingType]))
         add_button = QPushButton("Add Readings")
         add_button.clicked.connect(
             lambda: browser_mass_generate_readings(
