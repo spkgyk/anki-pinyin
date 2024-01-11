@@ -1,4 +1,4 @@
-from .utils import ReadingType, OutputMode, DATA_DIR
+from .utils import ReadingType, OutputMode, ICON_DIR
 from .user_messages import yes_no_window, info_window
 from .tokenizer import strip_display_format, gen_display_format
 
@@ -13,7 +13,7 @@ def get_progress_bar_widget(length: int):
     progress_widget = QWidget(None)
     progress_widget.setFixedSize(400, 70)
     progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progress_widget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
+    progress_widget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
     bar = QProgressBar(progress_widget)
     bar.setFixedSize(390, 50)
     bar.move(10, 10)
@@ -120,7 +120,7 @@ def browser_menu(browser: Browser):
         layout.addWidget(add_button)
         layout.addWidget(remove_button)
         generateWidget.setWindowTitle("Generate Chinese Readings")
-        generateWidget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
+        generateWidget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
         generateWidget.setLayout(layout)
         generateWidget.exec()
     else:

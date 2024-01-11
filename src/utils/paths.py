@@ -15,6 +15,8 @@ assert os.path.exists(BASE_DIR)
 assert os.path.exists(SRC_DIR)
 assert os.path.exists(DATA_DIR)
 assert os.path.exists(VENDOR_DIR)
+assert os.path.exists(ICON_DIR)
+assert os.path.exists(JS_DIR)
 
 
 def add_to_path(path: Union[str, Path]):
