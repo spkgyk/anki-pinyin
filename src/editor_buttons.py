@@ -9,7 +9,7 @@ def editor_generate_readings(editor: Editor):
     current_field_id = editor.currentField
     if current_field_id is not None:
         selected_text = editor.note.fields[current_field_id]
-        reading_type = ReadingType(config.get("ReadingType", ReadingType.PINYIN_TONES))
+        reading_type = ReadingType(config.get("reading_type"))
         editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", reading_type)
         editor.loadNoteKeepingFocus()
 
@@ -25,7 +25,7 @@ def editor_strip_readings(editor: Editor):
 def add_editor_buttons(buttons: list[str], editor: Editor):
     du_icon = str(DATA_DIR / "icons" / "simpDu.svg")
     shan_icon = str(DATA_DIR / "icons" / "simpShan.svg")
-    if config.get("traditionalIcons", False):
+    if config.get("traditional_icons", False):
         du_icon = str(DATA_DIR / "icons" / "tradDu.svg")
         shan_icon = str(DATA_DIR / "icons" / "tradShan.svg")
 
