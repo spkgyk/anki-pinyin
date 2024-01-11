@@ -87,7 +87,7 @@ class ChineseSettings(QDialog):
     @classmethod
     def show_modal(cls):
         mw.chinese_settings = cls()
-        mw.chinese_settings.show()
+        mw.chinese_settings.exec()
 
 
 def setup_menu():
