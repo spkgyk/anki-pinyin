@@ -7,7 +7,7 @@ from aqt.editor import Editor
 
 def editor_generate_readings(editor: Editor):
     current_field_id = editor.currentField
-    if current_field_id:
+    if current_field_id is not None:
         selected_text = editor.note.fields[current_field_id]
         reading_type = ReadingType(config.get("ReadingType", ReadingType.PINYIN_TONES))
         editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", reading_type)
@@ -16,7 +16,7 @@ def editor_generate_readings(editor: Editor):
 
 def editor_strip_readings(editor: Editor):
     current_field_id = editor.currentField
-    if current_field_id:
+    if current_field_id is not None:
         selected_text = editor.note.fields[current_field_id]
         editor.note.fields[current_field_id] = strip_display_format(selected_text, "cn")
         editor.loadNoteKeepingFocus()
