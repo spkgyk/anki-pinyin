@@ -3,10 +3,10 @@ from .user_messages import yes_no_window, info_window
 from .tokenizer import strip_display_format, gen_display_format
 
 from aqt import mw
-from aqt.qt import *
 from typing import Sequence
 from anki.notes import NoteId
 from aqt.browser import Browser
+from aqt.qt import QWidget, Qt, QIcon, QProgressBar, QLabel, QDialog, QHBoxLayout, QComboBox, QPushButton, QAction, QMenu
 
 
 def get_progress_bar_widget(length: int):

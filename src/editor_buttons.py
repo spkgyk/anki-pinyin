@@ -1,14 +1,8 @@
-from . import (
-    ReadingType,
-    strip_display_format,
-    gen_display_format,
-    DATA_DIR,
-)
+from .tokenizer import strip_display_format, gen_display_format
+from .utils import ReadingType, DATA_DIR
 
 from aqt import mw
-from aqt.qt import *
 from aqt.editor import Editor
-from aqt.utils import showInfo
 
 
 def editor_generate_readings(editor: Editor):
