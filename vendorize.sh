@@ -18,8 +18,7 @@ find vendor -type d -name "test" -exec rm -rf {} +
 find vendor -type f -name "*.pyc" -delete
 find vendor -type d \( -name "examples" -o -name "demos" -o -name "samples" \) -exec rm -rf {} +
 find vendor -type f \( -name ".travis.yml" -o -name "setup.py" -o -name "Makefile" -o -name "build.sh" \) -delete
-find vendor -type d -path "*.dist-info" -not -path "*pylangacq*" -not -path "*wordseg*" -not -path "*pycantonese*" -exec rm -rf {} +
+find vendor -type d -path "*.dist-info" -exec rm -rf {} +
 rm -rf vendor/_yaml
 rm -rf vendor/bin
 black . --line-length=140
-sed -i 's/def real_decorator(func):/def real_decorator(func):\n        func.__doc__ = func.__doc__ or ""/g' vendor/pylangacq/chat.py

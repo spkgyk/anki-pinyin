@@ -3,8 +3,7 @@ from opencc import OpenCC
 from typing import Optional
 from functools import lru_cache
 from pypinyin import lazy_pinyin, Style
-
-# from pycantonese import characters_to_jyutping
+from ToJyutping import get_jyutping_list
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 
@@ -52,7 +51,7 @@ class MandarinToken(BaseToken):
 
         if self.token:
             pinyin = self._gen_pinyin(word)
-            # jyutping = self._gen_jyutping(word)
+            jyutping = self._gen_jyutping(word)
             if pinyin and pinyin[0] != self.surface:
                 self.pinyin = pinyin
                 self.zhuyin = [self._to_zhuyin(p) for p in pinyin]
@@ -70,10 +69,10 @@ class MandarinToken(BaseToken):
                 if reading_type != ReadingType.JYUTPING:
                     self.migaku_token = "{}[{}]".format(self.surface, " ".join(reading))
 
-                # if jyutping and jyutping[0] != self.surface:
-                #     self.jyutping = jyutping
+                if jyutping and jyutping[0] != self.surface:
+                    self.jyutping = jyutping
 
-                if reading_type == ReadingType.JYUTPING:
+                if self.jyutping and reading_type == ReadingType.JYUTPING:
                     self.migaku_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
 
     @staticmethod
@@ -83,14 +82,12 @@ class MandarinToken(BaseToken):
         pinyin_output = [cleaned for cleaned in (set_value_space(char) for char in pinyin_output) if cleaned] or None
         return pinyin_output
 
-    # @staticmethod
-    # def _gen_jyutping(token: str):
-    #     jyutping_output = [x[-1] for x in characters_to_jyutping(token) if x and x[-1]] or None
-    #     if jyutping_output:
-    #         _list = []
-    #         [_list.extend(NUMBERS.split(char)) for char in jyutping_output]
-    #         jyutping_output = _list
-    #     return jyutping_output
+    @staticmethod
+    def _gen_jyutping(token: str):
+        jyutping_output = [x[-1] for x in get_jyutping_list(token) if x and x[-1]] or None
+        if jyutping_output:
+            jyutping_output = [x for char in jyutping_output if (x := next(iter(char.split(" ")), False))] or None
+        return jyutping_output
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
