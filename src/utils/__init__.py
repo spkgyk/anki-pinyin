@@ -15,8 +15,7 @@ from .functions import (
     set_value_space,
     set_value,
 )
-from .reading_type import ReadingType
-from .output_mode import OutputMode
+from .enums import OutputMode, ReadingType
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)
