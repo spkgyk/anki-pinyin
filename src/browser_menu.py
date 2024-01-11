@@ -93,9 +93,11 @@ def browser_menu(browser: Browser):
         output_mode_label = QLabel("Output Mode:")
         output_mode_cb = QComboBox()
         output_mode_cb.addItems(sorted([m.value for m in OutputMode]))
+        output_mode_cb.setCurrentIndex(2)
         reading_type_label = QLabel("Reading Type:")
         reading_type_cb = QComboBox()
         reading_type_cb.addItems(sorted([t.value for t in ReadingType]))
+        reading_type_cb.setCurrentIndex(2)
         add_button = QPushButton("Add Readings")
         add_button.clicked.connect(
             lambda: browser_mass_generate_readings(
