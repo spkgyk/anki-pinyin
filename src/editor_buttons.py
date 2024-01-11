@@ -1,14 +1,13 @@
 from .tokenizer import strip_display_format, gen_display_format
 from .utils import ReadingType, DATA_DIR
+from . import config
 
-from aqt import mw
 from aqt.editor import Editor
 
 
 def editor_generate_readings(editor: Editor):
     current_field_id = editor.currentField
     if current_field_id:
-        config = mw.addonManager.getConfig(__name__)
         selected_text = editor.note.fields[current_field_id]
         reading_type = ReadingType(config.get("ReadingType", ReadingType.PINYIN_TONES))
         editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", reading_type)
@@ -24,7 +23,6 @@ def editor_strip_readings(editor: Editor):
 
 
 def add_editor_buttons(buttons: list[str], editor: Editor):
-    config = mw.addonManager.getConfig(__name__)
     du_icon = str(DATA_DIR / "icons" / "simpDu.svg")
     shan_icon = str(DATA_DIR / "icons" / "simpShan.svg")
     if config.get("traditionalIcons", False):

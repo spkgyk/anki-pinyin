@@ -1,9 +1,9 @@
 from .utils import ICON_DIR, ReadingType
 from .user_messages import yes_no_window
+from . import config
 
 from aqt import mw
 from aqt.qt import *
-from os.path import dirname
 
 
 class ChineseSettings(QDialog):
@@ -12,7 +12,6 @@ class ChineseSettings(QDialog):
         self.setWindowTitle("Pinyin Generation Settings")
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
-        self.config = mw.addonManager.getConfig(__name__)
         self.main_layout = self.define_main_layout()
         self.define_signals()
         self.setLayout(self.main_layout)
@@ -36,13 +35,13 @@ class ChineseSettings(QDialog):
         reading_layout.addStretch()
         self.reading_type_cb = QComboBox()
         self.reading_type_cb.addItems(sorted([r.value for r in ReadingType]))
-        index = self.reading_type_cb.findText(self.config.get("reading_type"))
+        index = self.reading_type_cb.findText(config.get("reading_type"))
         self.reading_type_cb.setCurrentIndex(index)
         reading_layout.addWidget(self.reading_type_cb)
 
         trad_icons_layout = QHBoxLayout()
         self.trad_icons_tb = QCheckBox()
-        self.trad_icons_tb.setChecked(self.config.get("traditional_icons"))
+        self.trad_icons_tb.setChecked(config.get("traditional_icons"))
         trad_icons_layout.addWidget(QLabel("Traditional Icons:"))
         trad_icons_layout.addStretch()
         trad_icons_layout.addWidget(self.trad_icons_tb)
@@ -71,20 +70,16 @@ class ChineseSettings(QDialog):
         self.resetButton.clicked.connect(self.load_default_config)
 
     def save_config(self):
-        new_config = {
-            "reading_type": self.reading_type_cb.currentText(),
-            "traditional_icons": self.trad_icons_tb.isChecked(),
-        }
-        mw.addonManager.writeConfig(__name__, new_config)
+        config.set("reading_type", self.reading_type_cb.currentText())
+        config.set("traditional_icons", self.trad_icons_tb.isChecked())
+        config.write()
         self.close()
 
     def load_default_config(self):
         if yes_no_window("Are you sure you would like to restore the default settings? This cannot be undone."):
-            new_config = {
-                "reading_type": ReadingType.PINYIN_TONES.value,
-                "traditional_icons": False,
-            }
-            mw.addonManager.writeConfig(__name__, new_config)
+            config.set("reading_type", ReadingType.PINYIN_TONES.value)
+            config.set("traditional_icons", False)
+            config.write()
             self.close()
 
     @classmethod
