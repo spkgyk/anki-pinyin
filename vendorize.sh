@@ -21,4 +21,5 @@ find vendor -type f \( -name ".travis.yml" -o -name "setup.py" -o -name "Makefil
 find vendor -type d -name "*.dist-info" -not -path "*pylangacq*" -exec rm -rf {} +
 rm -rf vendor/_yaml
 rm -rf vendor/bin
+sed -i 's/ -> "pylangacq.Reader"//g' vendor/pylangacq/chat.py
 black . --line-length=140
