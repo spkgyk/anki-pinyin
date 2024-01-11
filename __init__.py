@@ -1,4 +1,5 @@
 from .tokenizer import (
+    ReadingType,
     strip_migaku,
     to_migaku,
     BASE_DIR,
@@ -92,7 +93,7 @@ def applyOM(addType: str, dest: str, text: str):
 def generate_migaku_editor(editor: Editor):
     id = editor.currentField
     selected_text = editor.note.fields[id]
-    modified_text = to_migaku(selected_text, "cn")
+    modified_text = to_migaku(selected_text, "cn", ReadingType.PINYIN)
     editor.note.fields[id] = modified_text
     editor.loadNoteKeepingFocus()  # Refresh the editor
 
@@ -111,7 +112,7 @@ def mass_generate_migaku_browser(source: str, dest: str, output_mode: str, readi
         fields = note.fields
         if source in fields and dest in fields:
             text = note[source]
-            newText = to_migaku(text, "cn", reading_type)
+            newText = to_migaku(text, "cn", ReadingType(reading_type))
             note[dest] = applyOM(output_mode, note[dest], newText)
             mw.col.update_note(note)
         val += 1
@@ -137,7 +138,7 @@ def mass_remove_migaku_browser(source: str, notes: Sequence[NoteId], widget: QDi
         fields = note.fields
         if source in fields:
             text = note[source]
-            text = strip_migaku(text)
+            text = strip_migaku(text, "cn")
             note[source] = text
             mw.col.update_note(note)
         val += 1
