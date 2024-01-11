@@ -160,4 +160,5 @@ cython_debug/
 #.idea/
 
 # remove vendor
-vendor/
+src/vendor/
+meta.json
