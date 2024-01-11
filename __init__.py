@@ -1,8 +1,8 @@
-from .tokenizer import (
+from .src import (
     ReadingType,
     strip_display_format,
     gen_display_format,
-    BASE_DIR,
+    DATA_DIR,
 )
 
 from aqt import mw
@@ -26,7 +26,7 @@ def info_window(text, parent=False, level="msg", day=True):
         title = "Info"
     if parent is False:
         parent = mw.app.activeWindow() or mw
-    icon = QIcon(str(BASE_DIR / "icons" / "migaku.png"))
+    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
     mb = QMessageBox(parent)
     if not day:
         mb.setStyleSheet(" QMessageBox {background-color: #272828;}")
@@ -44,7 +44,7 @@ def yes_no_window(text, parent=None, day=True):
     msg = QMessageBox(parent)
     msg.setWindowTitle("Select")
     msg.setText(text)
-    icon = QIcon(str(BASE_DIR / "icons" / "migaku.png"))
+    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
     b = msg.addButton(QMessageBox.StandardButton.Yes)
     b.setFixedSize(100, 30)
     b.setDefault(True)
@@ -64,7 +64,7 @@ def get_progress_bar_widget(length: int):
     progressWidget = QWidget(None)
     progressWidget.setFixedSize(400, 70)
     progressWidget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progressWidget.setWindowIcon(QIcon(str(BASE_DIR / "icons" / "migaku.png")))
+    progressWidget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
     bar = QProgressBar(progressWidget)
     bar.setFixedSize(390, 50)
     bar.move(10, 10)
@@ -81,7 +81,7 @@ def apply_output_mode(addType: str, dest: str, text: str):
         if addType == "If Empty":
             if dest == "":
                 dest = text
-        elif addType == "Add":
+        elif addType == "Append":
             if dest == "":
                 dest = text
             else:
@@ -93,7 +93,7 @@ def apply_output_mode(addType: str, dest: str, text: str):
 
 def browser_mass_generate_readings(source: str, dest: str, output_mode: str, reading_type: str, notes: Sequence[NoteId], widget: QDialog):
     mw.checkpoint("Chinese Reading Generation")
-    if not yes_no_window('Extract characters from the "' + source + '" field and use to generate readings in the "' + dest + '" field?'):
+    if not yes_no_window('Extract characters from the "' + source + '" field\nand use to generate readings in the "' + dest + '" field?'):
         return
     widget.close()
     progressWidget, bar = get_progress_bar_widget(len(notes))
@@ -135,7 +135,7 @@ def browser_menu(browser: Browser):
         fields = mw.col.field_names_for_note_ids(notes)
         generateWidget = QDialog(None, Qt.WindowType.Window)
         layout = QHBoxLayout()
-        origin_label = QLabel("Origin:")
+        origin_label = QLabel("Source:")
         source_cb = QComboBox()
         source_cb.addItems(fields)
         dest_label = QLabel("Destination:")
@@ -143,10 +143,10 @@ def browser_menu(browser: Browser):
         dest_cb.addItems(fields)
         output_mode_label = QLabel("Output Mode:")
         output_mode_cb = QComboBox()
-        output_mode_cb.addItems(["Add", "Overwrite", "If Empty"])
+        output_mode_cb.addItems(["Append", "Overwrite", "If Empty"])
         reading_type_label = QLabel("Reading Type:")
         reading_type_cb = QComboBox()
-        reading_type_cb.addItems(["Pinyin", "Bopomofo", "Jyutping"])
+        reading_type_cb.addItems(["Pinyin", "Zhuyin", "Jyutping"])
         add_button = QPushButton("Add Readings")
         add_button.clicked.connect(
             lambda: browser_mass_generate_readings(
@@ -171,7 +171,7 @@ def browser_menu(browser: Browser):
         layout.addWidget(add_button)
         layout.addWidget(remove_button)
         generateWidget.setWindowTitle("Generate Chinese Readings")
-        generateWidget.setWindowIcon(QIcon(str(BASE_DIR / "icons" / "migaku.png")))
+        generateWidget.setWindowIcon(QIcon(str(DATA_DIR / "icons" / "migaku.png")))
         generateWidget.setLayout(layout)
         generateWidget.exec()
     else:
@@ -207,7 +207,7 @@ def add_my_button(buttons: list[str], editor: Editor):
     editor._links["editor_strip_readings"] = lambda editor=editor: editor_strip_readings(editor)
     buttons.append(
         editor.addButton(
-            icon=str(BASE_DIR / "icons" / "simpDu.svg"),
+            icon=str(DATA_DIR / "icons" / "simpDu.svg"),
             cmd="to_migaku",
             func=editor._links["editor_generate_readings"],
             tip="Generate pinyin in the Migaku format",
@@ -216,7 +216,7 @@ def add_my_button(buttons: list[str], editor: Editor):
     )
     buttons.append(
         editor.addButton(
-            icon=str(BASE_DIR / "icons" / "simpShan.svg"),
+            icon=str(DATA_DIR / "icons" / "simpShan.svg"),
             cmd="strip_migaku",
             func=editor._links["editor_strip_readings"],
             tip="Strip the Migaku format from the text",

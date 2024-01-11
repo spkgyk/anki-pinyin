@@ -7,16 +7,15 @@ from ToJyutping import get_jyutping_list
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 
-from ..utils import (
-    BaseTokenizer,
+from ...utils import (
     ReadingType,
-    BaseToken,
     set_value_space,
     CACHE_SIZE,
     VENDOR_DIR,
     SQUARE_BR,
-    NUMBERS,
 )
+
+from ..base import BaseToken, BaseTokenizer
 
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
@@ -63,7 +62,7 @@ class MandarinToken(BaseToken):
                     self.alternate_form = _open_cc_trad2simp.convert(self.token)
 
                 reading = self.tones
-                if reading_type == ReadingType.BOPOMOFO:
+                if reading_type == ReadingType.ZHUYIN:
                     reading = self.zhuyin
 
                 if reading_type != ReadingType.JYUTPING:

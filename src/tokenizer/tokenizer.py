@@ -1,5 +1,5 @@
 from .chinese import ChineseTokenizer
-from .utils import ReadingType
+from ..utils import ReadingType
 
 cn = ChineseTokenizer()
 

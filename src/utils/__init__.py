@@ -1,12 +1,9 @@
-from .base import (
-    BaseTokenizer,
-    BaseToken,
-)
 from .paths import (
     add_to_path,
     VENDOR_DIR,
     DATA_DIR,
     BASE_DIR,
+    SRC_DIR,
 )
 from .functions import (
     PUNCTUATION_EMOJI_SPACE,
@@ -19,3 +16,4 @@ from .functions import (
 from .reading_type import ReadingType
 
 CACHE_SIZE = 500000
+add_to_path(VENDOR_DIR)
