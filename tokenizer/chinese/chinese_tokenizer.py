@@ -39,7 +39,7 @@ class MandarinToken(BaseToken):
         super().__init__()
 
         self.surface: str = word
-        self.migaku_token: str = self.surface
+        self.display_token: str = self.surface
         self.reading_type: ReadingType = reading_type
 
         self.token: Optional[str] = set_value_space(self.surface)
@@ -67,13 +67,13 @@ class MandarinToken(BaseToken):
                     reading = self.zhuyin
 
                 if reading_type != ReadingType.JYUTPING:
-                    self.migaku_token = "{}[{}]".format(self.surface, " ".join(reading))
+                    self.display_token = "{}[{}]".format(self.surface, " ".join(reading))
 
                 if jyutping and jyutping[0] != self.surface:
                     self.jyutping = jyutping
 
                 if self.jyutping and reading_type == ReadingType.JYUTPING:
-                    self.migaku_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
+                    self.display_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
@@ -102,16 +102,16 @@ class MandarinToken(BaseToken):
 
 class ChineseTokenizer(BaseTokenizer):
     @staticmethod
-    def strip_migaku(text: str):
+    def strip_display_format(text: str):
         return SQUARE_BR.sub("", text)
 
     def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
-        text = self.strip_migaku(text)
+        text = self.strip_display_format(text)
         is_simp = any(c in all_simp_chars for c in text) if reading_type != ReadingType.JYUTPING else False
         tokens = [MandarinToken(x, is_simp, reading_type) for x in cut(text.strip())]
         return tokens
 
-    def to_migaku(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
+    def gen_display_format(self, text: str, reading_type: ReadingType = ReadingType.PINYIN):
         tokens = self.tokenize(text, reading_type)
-        output = "".join(token.migaku_token for token in tokens)
+        output = "".join(token.display_token for token in tokens)
         return output

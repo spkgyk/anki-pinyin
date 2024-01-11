@@ -1,30 +1,29 @@
 from .tokenizer import (
     ReadingType,
-    strip_migaku,
-    to_migaku,
+    strip_display_format,
+    gen_display_format,
     BASE_DIR,
 )
 
 from aqt import mw
 from aqt.qt import *
-from aqt.utils import showInfo
 from aqt import gui_hooks
-from aqt.editor import Editor
-from aqt.browser import Browser
-from anki.find import fieldNamesForNotes
-from anki.notes import NoteId
 from typing import Sequence
+from aqt.editor import Editor
+from anki.notes import NoteId
+from aqt.utils import showInfo
+from aqt.browser import Browser
 
 
-def miInfo(text, parent=False, level="msg", day=True):
+def info_window(text, parent=False, level="msg", day=True):
     if level == "wrn":
-        title = "Migaku Chinese Warning"
+        title = "Warning"
     elif level == "not":
-        title = "Migaku Chinese Notice"
+        title = "Notice"
     elif level == "err":
-        title = "Migaku Chinese Error"
+        title = "Error"
     else:
-        title = "Migaku Chinese"
+        title = "Info"
     if parent is False:
         parent = mw.app.activeWindow() or mw
     icon = QIcon(str(BASE_DIR / "icons" / "migaku.png"))
@@ -34,16 +33,16 @@ def miInfo(text, parent=False, level="msg", day=True):
     mb.setText(text)
     mb.setWindowIcon(icon)
     mb.setWindowTitle(title)
-    b = mb.addButton(QMessageBox.Ok)
+    b = mb.addButton(QMessageBox.StandardButton.Ok)
     b.setFixedSize(100, 30)
     b.setDefault(True)
 
     return mb.exec()
 
 
-def miAsk(text, parent=None, day=True):
+def yes_no_window(text, parent=None, day=True):
     msg = QMessageBox(parent)
-    msg.setWindowTitle("Migaku Chinese")
+    msg.setWindowTitle("Select")
     msg.setText(text)
     icon = QIcon(str(BASE_DIR / "icons" / "migaku.png"))
     b = msg.addButton(QMessageBox.StandardButton.Yes)
@@ -61,7 +60,7 @@ def miAsk(text, parent=None, day=True):
         return False
 
 
-def getProgressWidget():
+def get_progress_bar_widget(length: int):
     progressWidget = QWidget(None)
     progressWidget.setFixedSize(400, 70)
     progressWidget.setWindowModality(Qt.WindowModality.ApplicationModal)
@@ -72,10 +71,12 @@ def getProgressWidget():
     per = QLabel(bar)
     per.setAlignment(Qt.AlignmentFlag.AlignCenter)
     progressWidget.show()
+    bar.setMinimum(0)
+    bar.setMaximum(length)
     return progressWidget, bar
 
 
-def applyOM(addType: str, dest: str, text: str):
+def apply_output_mode(addType: str, dest: str, text: str):
     if text:
         if addType == "If Empty":
             if dest == "":
@@ -90,57 +91,39 @@ def applyOM(addType: str, dest: str, text: str):
     return dest
 
 
-def generate_migaku_editor(editor: Editor):
-    id = editor.currentField
-    selected_text = editor.note.fields[id]
-    modified_text = to_migaku(selected_text, "cn", ReadingType.PINYIN)
-    editor.note.fields[id] = modified_text
-    editor.loadNoteKeepingFocus()  # Refresh the editor
-
-
-def mass_generate_migaku_browser(source: str, dest: str, output_mode: str, reading_type: str, notes: Sequence[NoteId], widget: QDialog):
+def browser_mass_generate_readings(source: str, dest: str, output_mode: str, reading_type: str, notes: Sequence[NoteId], widget: QDialog):
     mw.checkpoint("Chinese Reading Generation")
-    if not miAsk('Are you sure you want to generate from the "' + source + '" field into  the "' + dest + '" field?.'):
+    if not yes_no_window('Extract characters from the "' + source + '" field and use to generate readings in the "' + dest + '" field?'):
         return
     widget.close()
-    progressWidget, bar = getProgressWidget()
-    bar.setMinimum(0)
-    bar.setMaximum(len(notes))
-    val = 0
-    for nid in notes:
+    progressWidget, bar = get_progress_bar_widget(len(notes))
+    for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
         if source in fields and dest in fields:
-            text = note[source]
-            newText = to_migaku(text, "cn", ReadingType(reading_type))
-            note[dest] = applyOM(output_mode, note[dest], newText)
+            newText = gen_display_format(note[source], "cn", ReadingType(reading_type))
+            note[dest] = apply_output_mode(output_mode, note[dest], newText)
             mw.col.update_note(note)
-        val += 1
-        bar.setValue(val)
+        bar.setValue(i)
         mw.app.processEvents()
     mw.progress.finish()
 
 
-def mass_remove_migaku_browser(source: str, notes: Sequence[NoteId], widget: QDialog):
-    if not miAsk(
-        f'WARNING\nAre you sure you want to mass remove readings from the "{source}" field?'
-        'Please make sure you have selected the correct field as this will remove all "[" and "]" and text in between from a field.'
+def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QDialog):
+    if not yes_no_window(
+        f'Remove all readings from the "{source}" field from the {len(notes)} selected notes?\n\n'
+        'Note: this action will remove all square brackets and the text beween ("ASDF[...]" -> "ASDF").'
     ):
         return
     widget.close()
-    progressWidget, bar = getProgressWidget()
-    bar.setMinimum(0)
-    bar.setMaximum(len(notes))
-    val = 0
-    for nid in notes:
+    progressWidget, bar = get_progress_bar_widget(len(notes))
+    for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
         if source in fields:
-            text = note[source]
-            note[source] = strip_migaku(text, "cn")
+            note[source] = strip_display_format(note[source], "cn")
             mw.col.update_note(note)
-        val += 1
-        bar.setValue(val)
+        bar.setValue(i)
         mw.app.processEvents()
     mw.progress.finish()
 
@@ -166,7 +149,7 @@ def browser_menu(browser: Browser):
         reading_type_cb.addItems(["Pinyin", "Bopomofo", "Jyutping"])
         add_button = QPushButton("Add Readings")
         add_button.clicked.connect(
-            lambda: mass_generate_migaku_browser(
+            lambda: browser_mass_generate_readings(
                 source_cb.currentText(),
                 dest_cb.currentText(),
                 output_mode_cb.currentText(),
@@ -176,7 +159,7 @@ def browser_menu(browser: Browser):
             )
         )
         remove_button = QPushButton("Remove Readings")
-        remove_button.clicked.connect(lambda: mass_remove_migaku_browser(source_cb.currentText(), notes, generateWidget))
+        remove_button.clicked.connect(lambda: browser_mass_strip_readings(source_cb.currentText(), notes, generateWidget))
         layout.addWidget(origin_label)
         layout.addWidget(source_cb)
         layout.addWidget(dest_label)
@@ -192,39 +175,7 @@ def browser_menu(browser: Browser):
         generateWidget.setLayout(layout)
         generateWidget.exec()
     else:
-        miInfo("Please select some cards before attempting to mass generate.")
-
-
-def strip_migaku_editor(editor: Editor):
-    id = editor.currentField
-    selected_text = editor.note.fields[id]
-    modified_text = strip_migaku(selected_text, "cn")
-    editor.note.fields[id] = modified_text
-    editor.loadNoteKeepingFocus()  # Refresh the editor
-
-
-def add_my_button(buttons: list[str], editor: Editor):
-    editor._links["generate_migaku_editor"] = lambda editor=editor: generate_migaku_editor(editor)
-    editor._links["strip_migaku_editor"] = lambda editor=editor: strip_migaku_editor(editor)
-    buttons.append(
-        editor.addButton(
-            icon=str(BASE_DIR / "icons" / "simpDu.svg"),  # Path to an icon if you have one
-            cmd="to_migaku",
-            func=editor._links["generate_migaku_editor"],
-            tip="Generate pinyin in the Migaku format",  # Hover tooltip
-            keys="f9",  # Shortcut (optional)
-        )
-    )
-    buttons.append(
-        editor.addButton(
-            icon=str(BASE_DIR / "icons" / "simpShan.svg"),  # Path to an icon if you have one
-            cmd="strip_migaku",
-            func=editor._links["strip_migaku_editor"],
-            tip="Strip the Migaku format from the text",  # Hover tooltip
-            keys="f10",  # Shortcut (optional)
-        )
-    )
-    return buttons
+        info_window("Please select some cards before attempting to mass generate.")
 
 
 def setup_browser_menu(browser: Browser):
@@ -233,6 +184,46 @@ def setup_browser_menu(browser: Browser):
     menu_edit: QMenu = browser.form.menuEdit
     menu_edit.addSeparator()
     menu_edit.addAction(a)
+
+
+def editor_generate_readings(editor: Editor):
+    id = editor.currentField
+    selected_text = editor.note.fields[id]
+    modified_text = gen_display_format(selected_text, "cn", ReadingType.PINYIN)
+    editor.note.fields[id] = modified_text
+    editor.loadNoteKeepingFocus()  # Refresh the editor
+
+
+def editor_strip_readings(editor: Editor):
+    id = editor.currentField
+    selected_text = editor.note.fields[id]
+    modified_text = strip_display_format(selected_text, "cn")
+    editor.note.fields[id] = modified_text
+    editor.loadNoteKeepingFocus()  # Refresh the editor
+
+
+def add_my_button(buttons: list[str], editor: Editor):
+    editor._links["editor_generate_readings"] = lambda editor=editor: editor_generate_readings(editor)
+    editor._links["editor_strip_readings"] = lambda editor=editor: editor_strip_readings(editor)
+    buttons.append(
+        editor.addButton(
+            icon=str(BASE_DIR / "icons" / "simpDu.svg"),
+            cmd="to_migaku",
+            func=editor._links["editor_generate_readings"],
+            tip="Generate pinyin in the Migaku format",
+            keys="f9",
+        )
+    )
+    buttons.append(
+        editor.addButton(
+            icon=str(BASE_DIR / "icons" / "simpShan.svg"),
+            cmd="strip_migaku",
+            func=editor._links["editor_strip_readings"],
+            tip="Strip the Migaku format from the text",
+            keys="f10",
+        )
+    )
+    return buttons
 
 
 gui_hooks.editor_did_init_buttons.append(add_my_button)

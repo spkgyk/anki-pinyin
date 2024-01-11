@@ -8,4 +8,4 @@ from jieba import setLogLevel
 
 setLogLevel(ERROR)
 
-from .tokenizer import to_migaku, strip_migaku, tokenize
+from .tokenizer import gen_display_format, strip_display_format, tokenize

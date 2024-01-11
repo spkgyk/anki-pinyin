@@ -9,11 +9,11 @@ def tokenize(text: str, lang: str, reading_type: ReadingType):
         return cn.tokenize(text, reading_type)
 
 
-def to_migaku(text: str, lang: str, reading_type: ReadingType):
+def gen_display_format(text: str, lang: str, reading_type: ReadingType):
     if lang == "cn":
-        return cn.to_migaku(text, reading_type)
+        return cn.gen_display_format(text, reading_type)
 
 
-def strip_migaku(text: str, lang: str):
+def strip_display_format(text: str, lang: str):
     if lang == "cn":
-        return cn.strip_migaku(text)
+        return cn.strip_display_format(text)
