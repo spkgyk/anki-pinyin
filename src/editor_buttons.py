@@ -5,43 +5,54 @@ from . import (
     DATA_DIR,
 )
 
+from aqt import mw
 from aqt.qt import *
 from aqt.editor import Editor
+from aqt.utils import showInfo
 
 
 def editor_generate_readings(editor: Editor):
     current_field_id = editor.currentField
-    selected_text = editor.note.fields[current_field_id]
-    editor.note.fields[current_field_id] = gen_display_format(selected_text, "cn", ReadingType.PINYIN)
-    editor.loadNoteKeepingFocus()
+    if current_field_id:
+        config = mw.addonManager.getConfig(__name__)
+        selected_text = editor.note.fields[current_field_id]
+        editor.note.fields[current_field_id] = gen_display_format(
+            selected_text, "cn", ReadingType(config.get("ReadingType", ReadingType.PINYIN))
+        )
+        editor.loadNoteKeepingFocus()
 
 
 def editor_strip_readings(editor: Editor):
     current_field_id = editor.currentField
-    selected_text = editor.note.fields[current_field_id]
-    editor.note.fields[current_field_id] = strip_display_format(selected_text, "cn")
-    editor.loadNoteKeepingFocus()
+    if current_field_id:
+        selected_text = editor.note.fields[current_field_id]
+        editor.note.fields[current_field_id] = strip_display_format(selected_text, "cn")
+        editor.loadNoteKeepingFocus()
 
 
 def add_my_button(buttons: list[str], editor: Editor):
-    editor._links["editor_generate_readings"] = lambda editor=editor: editor_generate_readings(editor)
-    editor._links["editor_strip_readings"] = lambda editor=editor: editor_strip_readings(editor)
+    config = mw.addonManager.getConfig(__name__)
+    du_icon = str(DATA_DIR / "icons" / "simpDu.svg")
+    shan_icon = str(DATA_DIR / "icons" / "simpShan.svg")
+    if config.get("traditionalIcons", False):
+        du_icon = str(DATA_DIR / "icons" / "tradDu.svg")
+        shan_icon = str(DATA_DIR / "icons" / "tradShan.svg")
+
     buttons.append(
         editor.addButton(
-            icon=str(DATA_DIR / "icons" / "simpDu.svg"),
-            cmd="to_migaku",
-            func=editor._links["editor_generate_readings"],
-            tip="Generate pinyin in the Migaku format",
+            icon=du_icon,
+            cmd="editor_generate_readings",
+            func=lambda editor=editor: editor_generate_readings(editor),
+            tip="Generate pinyin for the selected field",
             keys="f9",
         )
     )
     buttons.append(
         editor.addButton(
-            icon=str(DATA_DIR / "icons" / "simpShan.svg"),
-            cmd="strip_migaku",
-            func=editor._links["editor_strip_readings"],
-            tip="Strip the Migaku format from the text",
+            icon=shan_icon,
+            cmd="editor_strip_readings",
+            func=lambda editor=editor: editor_strip_readings(editor),
+            tip="Strip readings from the selected field",
             keys="f10",
         )
     )
-    return buttons
