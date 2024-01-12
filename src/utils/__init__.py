@@ -16,7 +16,6 @@ from .functions import (
     set_value,
 )
 from .enums import OutputMode, ReadingType
-from .settings_tab import SettingsTab
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)
