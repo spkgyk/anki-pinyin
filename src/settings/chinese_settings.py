@@ -1,7 +1,7 @@
-from .utils import ICON_DIR, ReadingType
-from .user_messages import yes_no_window
+from ..utils import ICON_DIR, ReadingType
+from ..user_messages import yes_no_window
 from .settings_tab import SettingsTab
-from . import config
+from .. import config
 
 from aqt import mw
 from aqt.qt import *
