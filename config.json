@@ -1,4 +1,16 @@
 {
   "reading_type": "Pinyin Tones",
-  "traditional_icons": false
+  "traditional_icons": false,
+  "simp_fields": [
+    "Simplified",
+    "Simp"
+  ],
+  "trad_fields": [
+    "Traditional",
+    "Trad"
+  ],
+  "variant_fields": [
+    "Variant",
+    "Var"
+  ]
 }

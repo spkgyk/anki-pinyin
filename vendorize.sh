@@ -23,4 +23,3 @@ rm -rf src/vendor/_yaml
 rm -rf src/vendor/bin
 black . --line-length=140
 conda env create -f dev_env.yaml -y
-conda activate anki-pinyin

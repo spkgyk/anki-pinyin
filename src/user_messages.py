@@ -1,10 +1,10 @@
 from . import DATA_DIR
 
 from aqt import mw
-from aqt.qt import QIcon, QMessageBox
+from aqt.qt import QIcon, QMessageBox, QWidget
 
 
-def info_window(text, parent=False, level="msg", day=True):
+def info_window(text: str, parent: QWidget | None = None, level: str = "msg", day: bool = True):
     if level == "wrn":
         title = "Warning"
     elif level == "not":
@@ -13,7 +13,7 @@ def info_window(text, parent=False, level="msg", day=True):
         title = "Error"
     else:
         title = "Info"
-    if parent is False:
+    if parent is None:
         parent = mw.app.activeWindow() or mw
     icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
     message_box = QMessageBox(parent)
@@ -29,7 +29,7 @@ def info_window(text, parent=False, level="msg", day=True):
     return message_box.exec()
 
 
-def yes_no_window(text, parent=None, day=True):
+def yes_no_window(text: str, parent: QWidget | None = None, day: bool = True):
     message_box = QMessageBox(parent)
     message_box.setWindowTitle("Select")
     message_box.setText(text)

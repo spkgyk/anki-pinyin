@@ -7,7 +7,7 @@ from aqt.qt import *
 
 
 class ChineseSettings(QDialog):
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Pinyin Generation Settings")
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
@@ -19,6 +19,7 @@ class ChineseSettings(QDialog):
 
     def define_main_layout(self):
         main_layout = QVBoxLayout()
+
         options_layout = self.define_options_layout()
         buttons_layout = self.define_buttons_layout()
 
@@ -72,6 +73,9 @@ class ChineseSettings(QDialog):
     def save_config(self):
         config.set("reading_type", self.reading_type_cb.currentText())
         config.set("traditional_icons", self.trad_icons_tb.isChecked())
+        config.set("simp_fields", [])
+        config.set("trad_fields", [])
+        config.set("variant_fields", [])
         config.write()
         self.close()
 
@@ -79,19 +83,19 @@ class ChineseSettings(QDialog):
         if yes_no_window("Are you sure you would like to restore the default settings? This cannot be undone."):
             config.set("reading_type", ReadingType.PINYIN_TONES.value)
             config.set("traditional_icons", False)
+            config.set("simp_fields", ["Simplified", "Simp"])
+            config.set("trad_fields", ["Traditional", "Trad"])
+            config.set("variant_fields", ["Variant", "Var"])
             config.write()
             self.close()
 
     @classmethod
     def show_modal(cls):
-        mw.chinese_settings = cls()
-        mw.chinese_settings.exec()
+        settings_window = cls(mw)
+        settings_window.exec()
 
 
 def setup_menu():
-    menu = QMenu("Anki Pinyin", mw)
-    open_chinese_settings_action = QAction("Settings", mw)
+    open_chinese_settings_action = QAction("Anki Pinyin Settings", mw)
     open_chinese_settings_action.triggered.connect(ChineseSettings.show_modal)
-    menu.addAction(open_chinese_settings_action)
-
-    mw.form.menubar.insertMenu(mw.form.menuHelp.menuAction(), menu)
+    mw.form.menuTools.addAction(open_chinese_settings_action)
