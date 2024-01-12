@@ -1,7 +1,7 @@
 from ..utils import ICON_DIR, ReadingType
 from ..user_messages import yes_no_window
-from .settings_tab import SettingsTab
 from .. import config
+from .tabs import SETTINGS_TABS
 
 from aqt import mw
 from aqt.qt import *
@@ -14,49 +14,40 @@ class ChineseSettings(QDialog):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
         self.main_layout = self.define_main_layout()
-        self.define_signals()
         self.setLayout(self.main_layout)
-        self.setFocus()
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def define_main_layout(self):
         main_layout = QVBoxLayout()
 
-        options_layout = self.define_options_layout()
-        buttons_layout = self.define_buttons_layout()
+        self.tab_widget = self.define_tabs()
+        self.buttons_layout = self.define_buttons_layout()
 
-        main_layout.addLayout(options_layout)
-        main_layout.addLayout(buttons_layout)
+        main_layout.addWidget(self.tab_widget)
+        main_layout.addLayout(self.buttons_layout)
 
         return main_layout
 
-    def define_options_layout(self):
-        options_layout = QVBoxLayout()
+    def define_tabs(self):
+        tab_widget = QTabWidget()
+        self.tabs = []
 
-        reading_layout = QHBoxLayout()
-        reading_layout.addWidget(QLabel("Default reading type:"))
-        reading_layout.addStretch()
-        self.reading_type_cb = QComboBox()
-        self.reading_type_cb.addItems(sorted([r.value for r in ReadingType]))
-        index = self.reading_type_cb.findText(config.get("reading_type"))
-        self.reading_type_cb.setCurrentIndex(index)
-        reading_layout.addWidget(self.reading_type_cb)
+        for tab_class in SETTINGS_TABS:
+            _tab = tab_class()
+            self.tabs.append(_tab)
+            tab_widget.addTab(_tab, _tab.TITLE)
 
-        trad_icons_layout = QHBoxLayout()
-        self.trad_icons_tb = QCheckBox()
-        self.trad_icons_tb.setChecked(config.get("traditional_icons"))
-        trad_icons_layout.addWidget(QLabel("Traditional Icons:"))
-        trad_icons_layout.addStretch()
-        trad_icons_layout.addWidget(self.trad_icons_tb)
-
-        options_layout.addLayout(reading_layout)
-        options_layout.addLayout(trad_icons_layout)
-
-        return options_layout
+        return tab_widget
 
     def define_buttons_layout(self):
-        self.applyButton = QPushButton("Apply")
-        self.cancelButton = QPushButton("Cancel")
         self.resetButton = QPushButton("Restore Defaults")
+        self.resetButton.clicked.connect(self.load_default_config)
+
+        self.cancelButton = QPushButton("Cancel")
+        self.cancelButton.clicked.connect(self.close)
+
+        self.applyButton = QPushButton("Apply")
+        self.applyButton.clicked.connect(self.save_config)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.resetButton)
@@ -66,18 +57,9 @@ class ChineseSettings(QDialog):
 
         return buttons_layout
 
-    def define_signals(self):
-        self.cancelButton.clicked.connect(self.close)
-        self.applyButton.clicked.connect(self.save_config)
-        self.resetButton.clicked.connect(self.load_default_config)
-
     def save_config(self):
-        config.set("reading_type", self.reading_type_cb.currentText())
-        config.set("traditional_icons", self.trad_icons_tb.isChecked())
-        config.set("simp_fields", [])
-        config.set("trad_fields", [])
-        config.set("variant_fields", [])
-        config.write()
+        for tab in self.tabs:
+            tab.save()
         self.close()
 
     def load_default_config(self):
