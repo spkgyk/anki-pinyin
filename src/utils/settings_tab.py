@@ -48,7 +48,7 @@ class SettingsTab(QWidget):
         return lbl
 
     class WizardPage(QWizardPage):
-        def __init__(self, widget: SettingsTab, parent: QWidget | None = None, is_tutorial: bool = True):
+        def __init__(self, widget: "SettingsTab", parent: QWidget = None, is_tutorial: bool = True):
             super().__init__(parent)
             self.widget = widget
             if self.widget.TITLE:

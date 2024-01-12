@@ -4,7 +4,7 @@ from aqt import mw
 from aqt.qt import QIcon, QMessageBox, QWidget
 
 
-def info_window(text: str, parent: QWidget | None = None, level: str = "msg", day: bool = True):
+def info_window(text: str, parent: QWidget = None, level: str = "msg", day: bool = True):
     if level == "wrn":
         title = "Warning"
     elif level == "not":
@@ -29,7 +29,7 @@ def info_window(text: str, parent: QWidget | None = None, level: str = "msg", da
     return message_box.exec()
 
 
-def yes_no_window(text: str, parent: QWidget | None = None, day: bool = True):
+def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
     message_box = QMessageBox(parent)
     message_box.setWindowTitle("Select")
     message_box.setText(text)
