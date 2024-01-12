@@ -1,11 +1,9 @@
-from src import tokenize, gen_display_format, ReadingType
+from src.tokenizer.chinese import ChineseTokenizer
+from src.utils import ReadingType
 
-cn_text = "Hello, asdfalskdf 2000佢講嘅政策都係空談，唔會真正幫到草根市民。"
-x = tokenize(cn_text, "cn", ReadingType.JYUTPING)
+cn_text = "重塑"
+ct = ChineseTokenizer()
+x = ct.tokenize(cn_text, ReadingType.JYUTPING)
 [print(token) for token in x]
 
-print(gen_display_format(cn_text, "cn", ReadingType.JYUTPING))
-print(gen_display_format(cn_text, "cn", ReadingType.JYUTPING))
-print(gen_display_format(cn_text, "cn", ReadingType.JYUTPING))
-print(gen_display_format(cn_text, "cn", ReadingType.JYUTPING))
-print(gen_display_format(cn_text, "cn", ReadingType.JYUTPING))
+print(ct.gen_display_format(cn_text, ReadingType.JYUTPING))

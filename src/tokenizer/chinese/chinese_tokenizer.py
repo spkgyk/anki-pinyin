@@ -2,10 +2,11 @@ from jieba import cut
 from opencc import OpenCC
 from typing import Optional
 from functools import lru_cache
-from pypinyin import lazy_pinyin, Style
 from ToJyutping import get_jyutping_list
+from pypinyin import lazy_pinyin, STYLE_TONE
 from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
+from pypinyin_dict.phrase_pinyin_data import large_pinyin
 
 from ...utils import (
     ReadingType,
@@ -17,6 +18,7 @@ from ...utils import (
 
 from ..base import BaseToken, BaseTokenizer
 
+large_pinyin.load()
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
 _open_cc_trad2simp = OpenCC("t2s")
@@ -83,7 +85,7 @@ class MandarinToken(BaseToken):
     @staticmethod
     @lru_cache(CACHE_SIZE)
     def _gen_pinyin(token: str):
-        pinyin_output: list[str] = lazy_pinyin(token, style=Style.TONE)
+        pinyin_output: list[str] = lazy_pinyin(token, STYLE_TONE)
         pinyin_output = [cleaned for cleaned in (set_value_space(char) for char in pinyin_output) if cleaned] or None
         return pinyin_output
 
@@ -131,3 +133,7 @@ class ChineseTokenizer(BaseTokenizer):
         tokens = self.tokenize(text, reading_type)
         output = "".join(token.display_token for token in tokens)
         return output
+
+
+# for item in [cc_cedict, di, large_pinyin, pinyin, zdic_cibs, zdic_cybs]:
+#     print(f"{item.__name__}", len(item.phrases_dict))

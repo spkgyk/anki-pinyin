@@ -11,4 +11,5 @@ dependencies:
      - jieba
      - pypinyin
      - ToJyutping
+     - pypinyin-dict
      - opencc-python-reimplemented 

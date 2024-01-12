@@ -1,7 +1,16 @@
+from .utils import BASE_DIR
+
+import json
+
 from aqt import mw
 
-
-_config = mw.addonManager.getConfig(__name__)
+if mw and mw.addonManager:
+    _config = mw.addonManager.getConfig(__name__)
+    assert _config
+else:
+    with (BASE_DIR / "config.json").open("r", encoding="utf8") as f:
+        _config = json.load(f)
+        assert _config
 
 
 def write():
