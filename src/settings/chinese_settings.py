@@ -13,20 +13,18 @@ class ChineseSettings(QDialog):
         self.setWindowTitle("Pinyin Generation Settings")
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
-        self.main_layout = self.define_main_layout()
-        self.setLayout(self.main_layout)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.define_main_layout()
 
     def define_main_layout(self):
-        main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
 
         self.tab_widget = self.define_tabs()
         self.buttons_layout = self.define_buttons_layout()
 
-        main_layout.addWidget(self.tab_widget)
-        main_layout.addLayout(self.buttons_layout)
+        self.main_layout.addWidget(self.tab_widget)
+        self.main_layout.addLayout(self.buttons_layout)
 
-        return main_layout
+        self.setLayout(self.main_layout)
 
     def define_tabs(self):
         tab_widget = QTabWidget()
