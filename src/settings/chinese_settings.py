@@ -21,21 +21,29 @@ class ChineseSettings(QDialog):
         self.tab_widget = self.define_tabs()
         self.buttons_layout = self.define_buttons_layout()
 
-        self.main_layout.addWidget(self.tab_widget)
+        self.main_layout.addLayout(self.tab_widget)
         self.main_layout.addLayout(self.buttons_layout)
 
         self.setLayout(self.main_layout)
 
     def define_tabs(self):
-        tab_widget = QTabWidget()
+        tab_bar = QTabBar()
+        stack = QStackedWidget()
+        tab_bar.currentChanged.connect(lambda index: stack.setCurrentIndex(index))
+
         self.tabs = []
 
         for tab_class in SETTINGS_TABS:
             _tab = tab_class()
             self.tabs.append(_tab)
-            tab_widget.addTab(_tab, _tab.TITLE)
+            tab_bar.addTab(_tab.TITLE)
+            stack.addWidget(_tab)
 
-        return tab_widget
+        layout = QVBoxLayout()
+        layout.addWidget(tab_bar)
+        layout.addWidget(stack)
+
+        return layout
 
     def define_buttons_layout(self):
         self.resetButton = QPushButton("Restore Defaults")
