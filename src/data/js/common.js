@@ -19,7 +19,7 @@ function unnest_span(span) {
   return result;
 }
 
-function selectAllFieldNodes(field, sel){
+function selectAllFieldNodes(field, sel) {
   setFormat("inserthtml", '');
   const newRange = new Range();
   sel.removeAllRanges();
@@ -28,7 +28,7 @@ function selectAllFieldNodes(field, sel){
 }
 
 function selectText(node, sel) {
-    sel.selectAllChildren(node)
+  sel.selectAllChildren(node)
 
 }
 

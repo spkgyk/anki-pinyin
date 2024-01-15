@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 import re
 
 from aqt import mw
@@ -40,52 +42,52 @@ class CSSJSHandler:
 
     def getToPinyinJS(self):
         toPinyin = JS_DIR / "bopoToPinyin.js"
-        with open(toPinyin, "r", encoding="utf-8") as toPinyinFile:
+        with toPinyin.open("r", encoding="utf-8") as toPinyinFile:
             return toPinyinFile.read()
 
     def getToBopoJS(self):
         toBopo = JS_DIR / "pinyinToBopo.js"
-        with open(toBopo, "r", encoding="utf-8") as toBopoFile:
+        with toBopo.open("r", encoding="utf-8") as toBopoFile:
             return toBopoFile.read()
 
     def getCParser(self):
         chineseParser = JS_DIR / "chineseparser.js"
-        with open(chineseParser, "r", encoding="utf-8") as chineseParserFile:
+        with chineseParser.open("r", encoding="utf-8") as chineseParserFile:
             return chineseParserFile.read()
 
     def getCoreJS(self):
         tongwen_core = JS_DIR / "tongwen_core.js"
-        with open(tongwen_core, "r", encoding="utf-8") as tongwen_coreFile:
+        with tongwen_core.open("r", encoding="utf-8") as tongwen_coreFile:
             return tongwen_coreFile.read()
 
     def gettongwen_table_ps2tJS(self):
         tongwen_table_ps2t = JS_DIR / "tongwen_table_ps2t.js"
-        with open(tongwen_table_ps2t, "r", encoding="utf-8") as tongwen_table_ps2tFile:
+        with tongwen_table_ps2t.open("r", encoding="utf-8") as tongwen_table_ps2tFile:
             return tongwen_table_ps2tFile.read()
 
     def gettongwen_table_pt2sJS(self):
         tongwen_table_pt2s = JS_DIR / "tongwen_table_pt2s.js"
-        with open(tongwen_table_pt2s, "r", encoding="utf-8") as tongwen_table_pt2sFile:
+        with tongwen_table_pt2s.open("r", encoding="utf-8") as tongwen_table_pt2sFile:
             return tongwen_table_pt2sFile.read()
 
     def gettongwen_table_s2tJS(self):
         tongwen_table_s2t = JS_DIR / "tongwen_table_s2t.js"
-        with open(tongwen_table_s2t, "r", encoding="utf-8") as tongwen_table_s2tFile:
+        with tongwen_table_s2t.open("r", encoding="utf-8") as tongwen_table_s2tFile:
             return tongwen_table_s2tFile.read()
 
     def gettongwen_table_ss2tJS(self):
         tongwen_table_ss2t = JS_DIR / "tongwen_table_ss2t.js"
-        with open(tongwen_table_ss2t, "r", encoding="utf-8") as tongwen_table_ss2tFile:
+        with tongwen_table_ss2t.open("r", encoding="utf-8") as tongwen_table_ss2tFile:
             return tongwen_table_ss2tFile.read()
 
     def gettongwen_table_st2sJS(self):
         tongwen_table_st2s = JS_DIR / "tongwen_table_st2s.js"
-        with open(tongwen_table_st2s, "r", encoding="utf-8") as tongwen_table_st2sFile:
+        with tongwen_table_st2s.open("r", encoding="utf-8") as tongwen_table_st2sFile:
             return tongwen_table_st2sFile.read()
 
     def gettongwen_table_t2sJS(self):
         tongwen_table_t2s = JS_DIR / "tongwen_table_t2s.js"
-        with open(tongwen_table_t2s, "r", encoding="utf-8") as tongwen_table_t2sFile:
+        with tongwen_table_t2s.open("r", encoding="utf-8") as tongwen_table_t2sFile:
             return tongwen_table_t2sFile.read()
 
     def noteCardFieldExists(self, data):
@@ -157,7 +159,7 @@ class CSSJSHandler:
         fieldConflictErrors = ""
         displayTypeError = ""
         alreadyIncluded = []
-        for item in Config.get("ActiveFields"):
+        for item in Config.ActiveFields:
             dataArray = item.split(";")
             displayOption = dataArray[0]
             if (len(dataArray) != 6 and len(dataArray) != 7) or "" in dataArray:
@@ -222,14 +224,14 @@ class CSSJSHandler:
         return (wrapperDict, True)
 
     def checkProfile(self):
-        if mw.pm.name in Config.get("Profiles") or ("all" in Config.get("Profiles") or "All" in Config.get("Profiles")):
+        if mw.pm.name in Config.Profiles or ("all" in Config.Profiles or "All" in Config.Profiles):
             return True
         return False
 
     def injectWrapperElements(self):
         if not self.checkProfile():
             return
-        if not Config.get("AutoCssJsGeneration"):
+        if not Config.AutoCssJsGeneration:
             return
         variantCheck = self.checkVariantSyntax()
         stCheck = self.checkSimpTradSyntax()
@@ -282,7 +284,7 @@ class CSSJSHandler:
         return True
 
     def checkReadingType(self):
-        rType = Config.get("ReadingType")
+        rType = Config.ReadingType
         if rType not in ["pinyin", "bopomofo", "jyutping"]:
             info_window(
                 'The "'
@@ -316,10 +318,10 @@ class CSSJSHandler:
         return self.hanziConverterHeader + js + self.hanziConverterFooter
 
     def getRubyFontSize(self):
-        return ".pinyin-ruby{font-size:" + str(Config.get("FontSize")) + "% !important;}"
+        return ".pinyin-ruby{font-size:" + str(Config.FontSize) + "% !important;}"
 
     def getChineseCss(self):
-        toneColors = Config.get("MandarinTones12345")
+        toneColors = Config.MandarinTones12345
         css = (
             ".nightMode .unhovered-word .hanzi-ruby{color:white !important;}.unhovered-word .hanzi-ruby{color:inherit !important;}.unhovered-word .pinyin-ruby{visibility:hidden  !important;}"
             + self.getRubyFontSize()
@@ -334,7 +336,7 @@ class CSSJSHandler:
                 toneColor,
             )
             count += 1
-        toneColors = Config.get("CantoneseTones123456")
+        toneColors = Config.CantoneseTones123456
         count = 1
         for toneColor in toneColors:
             css += ".canTone%s{color:%s;}.ankidroid_dark_mode .canTone%s, .nightMode .cantone%s{color:%s;}" % (
@@ -429,11 +431,8 @@ class CSSJSHandler:
         text = re.sub(pattern, replaceWith, text)
         return text
 
-    def getReadingType(self):
-        return Config.get("ReadingType")
-
     def getChineseJs(self):
-        js = '<script>(function(){const CHINESE_READING_TYPE ="' + self.getReadingType() + '";' + self.chineseParserJS + "})();</script>"
+        js = '<script>(function(){const CHINESE_READING_TYPE ="' + Config.ReadingType + '";' + self.chineseParserJS + "})();</script>"
         return self.chineseParserHeader + js + self.chineseParserFooter
 
     def editChineseJs(self, text):
@@ -460,8 +459,8 @@ class CSSJSHandler:
         return re.sub(self.chineseCSSPattern, "", css)
 
     def injectChineseConverterToTemplate(self, t):
-        hc = Config.get("hanziConversion")
-        rc = Config.get("readingConversion")
+        hc = Config.hanziConversion
+        rc = Config.readingConversion
         if hc == "None" and rc == "None":
             t["qfmt"] = self.removeHanziConverterJs(t["qfmt"])
             t["afmt"] = self.removeHanziConverterJs(t["afmt"])
