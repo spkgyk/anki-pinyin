@@ -26,6 +26,14 @@ class Config:
     simp_fields = FieldOutputModeList(_config.get("simp_fields"))
     trad_fields = FieldOutputModeList(_config.get("trad_fields"))
     variant_fields = FieldOutputModeList(_config.get("variant_fields"))
+    profiles = ""
+    active_fields = ""
+    auto_generate_css_js = ""
+    ruby_font_scale_factor = ""
+    mandarin_tones = ""
+    cantonese_tones = ""
+    hanziConversion = ""
+    readingConversion = ""
 
     def load_default(self):
         self.reading_type = self.__default_reading_type

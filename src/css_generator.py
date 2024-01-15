@@ -159,7 +159,7 @@ class CSSJSHandler:
         fieldConflictErrors = ""
         displayTypeError = ""
         alreadyIncluded = []
-        for item in Config.ActiveFields:
+        for item in Config.active_fields:
             dataArray = item.split(";")
             displayOption = dataArray[0]
             if (len(dataArray) != 6 and len(dataArray) != 7) or "" in dataArray:
@@ -224,14 +224,14 @@ class CSSJSHandler:
         return (wrapperDict, True)
 
     def checkProfile(self):
-        if mw.pm.name in Config.Profiles or ("all" in Config.Profiles or "All" in Config.Profiles):
+        if mw.pm.name in Config.profiles or ("all" in Config.profiles or "All" in Config.profiles):
             return True
         return False
 
     def injectWrapperElements(self):
         if not self.checkProfile():
             return
-        if not Config.AutoCssJsGeneration:
+        if not Config.auto_generate_css_js:
             return
         variantCheck = self.checkVariantSyntax()
         stCheck = self.checkSimpTradSyntax()
@@ -318,10 +318,10 @@ class CSSJSHandler:
         return self.hanziConverterHeader + js + self.hanziConverterFooter
 
     def getRubyFontSize(self):
-        return ".pinyin-ruby{font-size:" + str(Config.FontSize) + "% !important;}"
+        return ".pinyin-ruby{font-size:" + str(Config.ruby_font_scale_factor) + "% !important;}"
 
     def getChineseCss(self):
-        toneColors = Config.MandarinTones12345
+        toneColors = Config.mandarin_tones
         css = (
             ".nightMode .unhovered-word .hanzi-ruby{color:white !important;}.unhovered-word .hanzi-ruby{color:inherit !important;}.unhovered-word .pinyin-ruby{visibility:hidden  !important;}"
             + self.getRubyFontSize()
@@ -336,7 +336,7 @@ class CSSJSHandler:
                 toneColor,
             )
             count += 1
-        toneColors = Config.CantoneseTones123456
+        toneColors = Config.cantonese_tones
         count = 1
         for toneColor in toneColors:
             css += ".canTone%s{color:%s;}.ankidroid_dark_mode .canTone%s, .nightMode .cantone%s{color:%s;}" % (
