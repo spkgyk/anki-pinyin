@@ -12,10 +12,12 @@ from .functions import (
     PUNCTUATION_EMOJI,
     SQUARE_BR,
     NUMBERS,
+    apply_output_mode,
     set_value_space,
     set_value,
 )
 from .enums import OutputMode, ReadingType
+from .classes import FieldOutputModeList
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)

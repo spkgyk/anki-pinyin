@@ -1,7 +1,7 @@
-from . import DATA_DIR
-
 from aqt import mw
 from aqt.qt import QIcon, QMessageBox, QWidget
+
+from . import DATA_DIR
 
 
 def info_window(text: str, parent: QWidget = None, level: str = "msg", day: bool = True):

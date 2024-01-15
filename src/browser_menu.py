@@ -1,12 +1,13 @@
-from .utils import ReadingType, OutputMode, ICON_DIR
-from .user_messages import yes_no_window, info_window
-from .tokenizer import strip_display_format, gen_display_format
-
 from aqt import mw
+from aqt.qt import *
 from typing import Sequence
 from anki.notes import NoteId
 from aqt.browser import Browser
-from aqt.qt import QWidget, Qt, QIcon, QProgressBar, QLabel, QDialog, QHBoxLayout, QComboBox, QPushButton, QAction, QMenu
+
+from .config import Config
+from .user_messages import yes_no_window, info_window
+from .tokenizer import strip_display_format, gen_display_format
+from .utils import ReadingType, OutputMode, ICON_DIR, apply_output_mode
 
 
 def get_progress_bar_widget(length: int):
@@ -25,33 +26,36 @@ def get_progress_bar_widget(length: int):
     return progress_widget, bar
 
 
-def apply_output_mode(output_mode: OutputMode, dest: str, text: str):
-    if text:
-        if output_mode == OutputMode.IF_EMPTY:
-            if dest == "":
-                dest = text
-        elif output_mode == OutputMode.APPEND:
-            if dest == "":
-                dest = text
-            else:
-                dest += "<br>" + text
-        else:
-            dest = text
-    return dest
-
-
-def browser_mass_generate_readings(source: str, dest: str, output_mode: str, reading_type: str, notes: Sequence[NoteId], widget: QDialog):
+def browser_mass_generate_readings(
+    source: str,
+    dest: str,
+    output_mode: OutputMode,
+    reading_type: ReadingType,
+    notes: Sequence[NoteId],
+    widget: QDialog,
+):
     mw.checkpoint("Chinese Reading Generation")
     if not yes_no_window('Extract characters from the "' + source + '" field\nand use to generate readings in the "' + dest + '" field?'):
         return
     widget.close()
     progress_widget, bar = get_progress_bar_widget(len(notes))
+
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
-        fields = mw.col.models.field_names(note.note_type())
+        fields = note.keys()
         if source in fields and dest in fields:
-            newText = gen_display_format(note[source], "cn", ReadingType(reading_type))
-            note[dest] = apply_output_mode(OutputMode(output_mode), note[dest], newText)
+            tokenization_result = gen_display_format(note[source], "cn", reading_type)
+            note[dest] = apply_output_mode(output_mode, note[dest], tokenization_result.display_format)
+
+            for field_name, content in note.items():
+                if field_name not in [source, dest]:
+                    if field_name in Config.simp_fields:
+                        note[field_name] = apply_output_mode(Config.simp_fields[field_name], content, tokenization_result.simplified)
+                    elif field_name in Config.trad_fields:
+                        note[field_name] = apply_output_mode(Config.trad_fields[field_name], content, tokenization_result.traditional)
+                    # elif field_name in Config.variant_fields:
+                    #     note[field_name] = apply_output_mode(Config.variant_fields[field_name], content, tokenization_result.variant)
+
             mw.col.update_note(note)
         bar.setValue(i)
         mw.app.processEvents()
@@ -103,8 +107,8 @@ def browser_menu(browser: Browser):
             lambda: browser_mass_generate_readings(
                 source_cb.currentText(),
                 dest_cb.currentText(),
-                output_mode_cb.currentText(),
-                reading_type_cb.currentText(),
+                OutputMode(output_mode_cb.currentText()),
+                ReadingType(reading_type_cb.currentText()),
                 notes,
                 generateWidget,
             )

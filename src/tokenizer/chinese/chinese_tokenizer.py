@@ -8,6 +8,7 @@ from pypinyin.style.bopomofo import BopomofoConverter
 from pypinyin.contrib.tone_convert import tone_to_tone3
 from pypinyin_dict.phrase_pinyin_data import large_pinyin
 
+from ..base import BaseToken, BaseTokenizer
 from ...utils import (
     ReadingType,
     set_value_space,
@@ -15,8 +16,6 @@ from ...utils import (
     VENDOR_DIR,
     SQUARE_BR,
 )
-
-from ..base import BaseToken, BaseTokenizer
 
 large_pinyin.load()
 _bopomofo_converter = BopomofoConverter()
@@ -45,6 +44,9 @@ class MandarinToken(BaseToken):
         self.display_token: str = self.surface
         self.reading_type: ReadingType = reading_type
 
+        self.simplified = self.surface
+        self.traditional = self.surface
+
         self.token: Optional[str] = set_value_space(self.surface)
         self.pinyin_tones: Optional[str] = None
         self.pinyin: Optional[str] = None
@@ -62,9 +64,11 @@ class MandarinToken(BaseToken):
                 self.zhuyin_tones = [self._to_zhuyin_tone(p) for p in self.zhuyin]
 
                 if is_simplified:
-                    self.alternate_form = _open_cc_simp2trad.convert(self.token)
+                    self.traditional = _open_cc_simp2trad.convert(self.token)
+                    self.alternate_form = self.traditional
                 else:
-                    self.alternate_form = _open_cc_trad2simp.convert(self.token)
+                    self.simplified = _open_cc_trad2simp.convert(self.token)
+                    self.alternate_form = self.simplified
 
                 reading = self.pinyin
                 if reading_type == ReadingType.PINYIN_TONES:
@@ -119,21 +123,22 @@ class MandarinToken(BaseToken):
 
 
 class ChineseTokenizer(BaseTokenizer):
+    class TokenizationResult:
+        def __init__(self, tokens: list[MandarinToken]):
+            self.display_format = "".join(token.display_token for token in tokens)
+            self.simplified = "".join(token.simplified for token in tokens)
+            self.traditional = "".join(token.traditional for token in tokens)
+
     @staticmethod
     def strip_display_format(text: str):
         return SQUARE_BR.sub("", text)
 
     def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         text = self.strip_display_format(text)
-        is_simp = any(c in all_simp_chars for c in text) if reading_type != ReadingType.JYUTPING else False
+        is_simp = reading_type in [ReadingType.PINYIN_ACCENTS, ReadingType.PINYIN_TONES]
         tokens = [MandarinToken(x, is_simp, reading_type) for x in cut(text.strip())]
         return tokens
 
     def gen_display_format(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         tokens = self.tokenize(text, reading_type)
-        output = "".join(token.display_token for token in tokens)
-        return output
-
-
-# for item in [cc_cedict, di, large_pinyin, pinyin, zdic_cibs, zdic_cybs]:
-#     print(f"{item.__name__}", len(item.phrases_dict))
+        return self.TokenizationResult(tokens)

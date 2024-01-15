@@ -1,9 +1,10 @@
-from .settings_tab import SettingsTab
-from ..utils import ReadingType
-from .. import config
-
 from aqt import mw
 from aqt.qt import *
+from copy import deepcopy
+
+from ..config import Config
+from .settings_tab import SettingsTab
+from ..utils import ReadingType, OutputMode
 
 
 class ReadingOptions(SettingsTab):
@@ -20,13 +21,13 @@ class ReadingOptions(SettingsTab):
         reading_layout.addStretch()
         self.reading_type_cb = QComboBox()
         self.reading_type_cb.addItems(sorted([r.value for r in ReadingType]))
-        index = self.reading_type_cb.findText(config.get("reading_type"))
+        index = self.reading_type_cb.findText(Config.reading_type.value)
         self.reading_type_cb.setCurrentIndex(index)
         reading_layout.addWidget(self.reading_type_cb)
 
         trad_icons_layout = QHBoxLayout()
         self.trad_icons_tb = QCheckBox()
-        self.trad_icons_tb.setChecked(config.get("traditional_icons"))
+        self.trad_icons_tb.setChecked(Config.traditional_icons)
         trad_icons_layout.addWidget(QLabel("Traditional Icons:"))
         trad_icons_layout.addStretch()
         trad_icons_layout.addWidget(self.trad_icons_tb)
@@ -35,9 +36,9 @@ class ReadingOptions(SettingsTab):
         self.lyt.addLayout(trad_icons_layout)
 
     def save(self):
-        config.set("reading_type", self.reading_type_cb.currentText())
-        config.set("traditional_icons", self.trad_icons_tb.isChecked())
-        config.write()
+        Config.reading_type = ReadingType(self.reading_type_cb.currentText())
+        Config.traditional_icons = self.trad_icons_tb.isChecked()
+        Config.write()
 
 
 class FieldOptions(SettingsTab):
@@ -49,56 +50,45 @@ class FieldOptions(SettingsTab):
         self.add_label("Setup the simplified, traditional and varients fields")
         fields_layout = QHBoxLayout()
 
-        # ct_label_layout = QVBoxLayout()
-        # ct_cb_layout = QVBoxLayout()
         field_label_layout = QVBoxLayout()
         field_cb_layout = QVBoxLayout()
+        output_mode_label_layout = QVBoxLayout()
+        output_mode_cb_layout = QVBoxLayout()
         button_layout = QVBoxLayout()
         already_layout = QVBoxLayout()
 
-        # self.simp_ct_cb_label = QLabel("Card:")
-        # self.simp_ct_cb = QComboBox()
         self.simp_field_cb_label = QLabel("Field:")
         self.simp_field_cb = QComboBox()
         self.simp_field_cb.addItems(self.fields)
+        self.simp_output_mode_cb_label = QLabel("Output Mode:")
+        self.simp_output_mode_cb = QComboBox()
+        self.simp_output_mode_cb.addItems([x.value for x in OutputMode])
         self.add_simp_field = QPushButton("Add")
         self.add_simp_field.clicked.connect(self.simp_add)
-        self.simp_fields = QLabel("Already selected fields: " + ", ".join(config.get("simp_fields")))
+        self.simp_fields = deepcopy(Config.simp_fields)
+        self.simp_fields_label = QLabel(self.simp_fields.to_set_text())
 
-        # self.simp_ct_cb.currentIndexChanged.connect(self.simp_selection_changed)
-        # self.simp_ct_cb.addItems(sorted(list(self.collection.keys())))
-
-        # self.trad_ct_cb_label = QLabel("Card:")
-        # self.trad_ct_cb = QComboBox()
         self.trad_field_cb_label = QLabel("Field:")
         self.trad_field_cb = QComboBox()
         self.trad_field_cb.addItems(self.fields)
+        self.trad_output_mode_cb_label = QLabel("Output Mode:")
+        self.trad_output_mode_cb = QComboBox()
+        self.trad_output_mode_cb.addItems([x.value for x in OutputMode])
         self.add_trad_field = QPushButton("Add")
         self.add_trad_field.clicked.connect(self.trad_add)
-        self.trad_fields = QLabel("Already selected fields: " + ", ".join(config.get("trad_fields")))
+        self.trad_fields = deepcopy(Config.trad_fields)
+        self.trad_fields_label = QLabel(self.trad_fields.to_set_text())
 
-        # self.trad_ct_cb.currentIndexChanged.connect(self.trad_selection_changed)
-        # self.trad_ct_cb.addItems(sorted(list(self.collection.keys())))
-
-        # self.var_ct_cb_label = QLabel("Card:")
-        # self.var_ct_cb = QComboBox()
         self.var_field_cb_label = QLabel("Field:")
         self.var_field_cb = QComboBox()
         self.var_field_cb.addItems(self.fields)
+        self.var_output_mode_cb_label = QLabel("Output Mode:")
+        self.var_output_mode_cb = QComboBox()
+        self.var_output_mode_cb.addItems([x.value for x in OutputMode])
         self.add_var_field = QPushButton("Add")
         self.add_var_field.clicked.connect(self.var_add)
-        self.var_fields = QLabel("Already selected fields: " + ", ".join(config.get("variant_fields")))
-
-        # self.var_ct_cb.currentIndexChanged.connect(self.var_selection_changed)
-        # self.var_ct_cb.addItems(sorted(list(self.collection.keys())))
-
-        # ct_label_layout.addWidget(self.simp_ct_cb_label)
-        # ct_label_layout.addWidget(self.trad_ct_cb_label)
-        # ct_label_layout.addWidget(self.var_ct_cb_label)
-
-        # ct_cb_layout.addWidget(self.simp_ct_cb)
-        # ct_cb_layout.addWidget(self.trad_ct_cb)
-        # ct_cb_layout.addWidget(self.var_ct_cb)
+        self.var_fields = deepcopy(Config.variant_fields)
+        self.var_fields_label = QLabel(self.var_fields.to_set_text())
 
         field_label_layout.addWidget(self.simp_field_cb_label)
         field_label_layout.addWidget(self.trad_field_cb_label)
@@ -108,18 +98,26 @@ class FieldOptions(SettingsTab):
         field_cb_layout.addWidget(self.trad_field_cb)
         field_cb_layout.addWidget(self.var_field_cb)
 
+        output_mode_label_layout.addWidget(self.simp_output_mode_cb_label)
+        output_mode_label_layout.addWidget(self.trad_output_mode_cb_label)
+        output_mode_label_layout.addWidget(self.var_output_mode_cb_label)
+
+        output_mode_cb_layout.addWidget(self.simp_output_mode_cb)
+        output_mode_cb_layout.addWidget(self.trad_output_mode_cb)
+        output_mode_cb_layout.addWidget(self.var_output_mode_cb)
+
         button_layout.addWidget(self.add_simp_field)
         button_layout.addWidget(self.add_trad_field)
         button_layout.addWidget(self.add_var_field)
 
-        already_layout.addWidget(self.simp_fields)
-        already_layout.addWidget(self.trad_fields)
-        already_layout.addWidget(self.var_fields)
+        already_layout.addWidget(self.simp_fields_label)
+        already_layout.addWidget(self.trad_fields_label)
+        already_layout.addWidget(self.var_fields_label)
 
-        # fields_layout.addLayout(ct_label_layout)
-        # fields_layout.addLayout(ct_cb_layout)
         fields_layout.addLayout(field_label_layout)
         fields_layout.addLayout(field_cb_layout)
+        fields_layout.addLayout(output_mode_label_layout)
+        fields_layout.addLayout(output_mode_cb_layout)
         fields_layout.addLayout(button_layout)
         fields_layout.addLayout(already_layout)
 
@@ -140,44 +138,23 @@ class FieldOptions(SettingsTab):
     def load_fields(self):
         return sorted(list({field for item in self.collection.values() for field in item["fields"]}))
 
-    # def simp_selection_changed(self):
-    #     self.simp_field_cb.clear()
-    #     self.simp_field_cb.addItems(sorted(self.collection.get(self.simp_ct_cb.currentText()).get("fields")))
-
-    # def trad_selection_changed(self):
-    #     self.trad_field_cb.clear()
-    #     self.trad_field_cb.addItems(sorted(self.collection.get(self.simp_ct_cb.currentText()).get("fields")))
-
-    # def var_selection_changed(self):
-    #     self.var_field_cb.clear()
-    #     self.var_field_cb.addItems(sorted(self.collection.get(self.simp_ct_cb.currentText()).get("fields")))
-
     def simp_add(self):
-        self.simp_fields.setText(self.simp_fields.text() + ", " + self.simp_field_cb.currentText())
-        self.simp_field_cb.removeItem(self.simp_field_cb.currentIndex())
-        self.simp_field_cb.setCurrentIndex(0)
+        self.simp_fields[self.simp_field_cb.currentText()] = OutputMode(self.simp_output_mode_cb.currentText())
+        self.simp_fields_label.setText(self.simp_fields.to_set_text())
 
     def trad_add(self):
-        self.trad_fields.setText(self.trad_fields.text() + ", " + self.trad_field_cb.currentText())
-        self.trad_field_cb.removeItem(self.trad_field_cb.currentIndex())
-        self.trad_field_cb.setCurrentIndex(0)
+        self.trad_fields[self.trad_field_cb.currentText()] = OutputMode(self.trad_output_mode_cb.currentText())
+        self.trad_fields_label.setText(self.trad_fields.to_set_text())
 
     def var_add(self):
-        self.var_fields.setText(self.var_fields.text() + ", " + self.var_field_cb.currentText())
-        self.var_field_cb.removeItem(self.var_field_cb.currentIndex())
-        self.var_field_cb.setCurrentIndex(0)
+        self.var_fields[self.var_field_cb.currentText()] = OutputMode(self.var_output_mode_cb.currentText())
+        self.var_fields_label.setText(self.var_fields.to_set_text())
 
     def save(self):
-        simp_fields = self.simp_fields.text().split(": ", 1)[-1]
-        simp_fields = sorted(x.lower().capitalize() for x in simp_fields.split(", "))
-        trad_fields = self.trad_fields.text().split(": ", 1)[-1]
-        trad_fields = sorted(x.lower().capitalize() for x in trad_fields.split(", "))
-        var_fields = self.var_fields.text().split(": ", 1)[-1]
-        var_fields = sorted(x.lower().capitalize() for x in var_fields.split(", "))
-        config.set("simp_fields", simp_fields)
-        config.set("trad_fields", trad_fields)
-        config.set("variant_fields", var_fields)
-        config.write()
+        Config.simp_fields = self.simp_fields
+        Config.trad_fields = self.trad_fields
+        Config.variant_fields = self.var_fields
+        Config.write()
 
 
 SETTINGS_TABS: list[SettingsTab] = [ReadingOptions, FieldOptions]

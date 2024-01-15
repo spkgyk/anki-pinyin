@@ -1,5 +1,7 @@
 import re
 
+from .enums import OutputMode
+
 punctuation_pattern = r"\u2000-\u206F\u3000-\u303F\uFF00-\uFFEF" + re.escape("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
 emoji_pattern = (
     r"\U0001F600-\U0001F64F"  # Emoticons
@@ -28,3 +30,18 @@ def set_value_space(attribute: str):
     if attribute:
         value = PUNCTUATION_EMOJI_SPACE.sub("", attribute) or None
     return value
+
+
+def apply_output_mode(output_mode: OutputMode, dest: str, text: str):
+    if text:
+        if output_mode == OutputMode.IF_EMPTY:
+            if dest == "":
+                dest = text
+        elif output_mode == OutputMode.APPEND:
+            if dest == "":
+                dest = text
+            else:
+                dest += "<br>" + text
+        else:
+            dest = text
+    return dest

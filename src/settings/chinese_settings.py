@@ -1,10 +1,10 @@
-from ..utils import ICON_DIR, ReadingType
-from ..user_messages import yes_no_window
-from .. import config
-from .tabs import SETTINGS_TABS
-
 from aqt import mw
 from aqt.qt import *
+
+from ..config import Config
+from ..utils import ICON_DIR
+from .tabs import SETTINGS_TABS
+from ..user_messages import yes_no_window
 
 
 class ChineseSettings(QDialog):
@@ -70,12 +70,7 @@ class ChineseSettings(QDialog):
 
     def load_default_config(self):
         if yes_no_window("Are you sure you would like to restore the default settings? This cannot be undone."):
-            config.set("reading_type", ReadingType.PINYIN_TONES.value)
-            config.set("traditional_icons", False)
-            config.set("simp_fields", ["Simplified", "Simp"])
-            config.set("trad_fields", ["Traditional", "Trad"])
-            config.set("variant_fields", ["Variant", "Var"])
-            config.write()
+            Config.load_default()
             self.close()
 
     @classmethod

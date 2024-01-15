@@ -1,11 +1,11 @@
-from .user_messages import info_window
-from .utils import JS_DIR
-from . import config
-
 import re
 
 from aqt import mw
 from aqt.qt import *
+
+from .utils import JS_DIR
+from .config import Config
+from .user_messages import info_window
 
 
 class CSSJSHandler:
@@ -157,7 +157,7 @@ class CSSJSHandler:
         fieldConflictErrors = ""
         displayTypeError = ""
         alreadyIncluded = []
-        for item in config.get("ActiveFields"):
+        for item in Config.get("ActiveFields"):
             dataArray = item.split(";")
             displayOption = dataArray[0]
             if (len(dataArray) != 6 and len(dataArray) != 7) or "" in dataArray:
@@ -222,14 +222,14 @@ class CSSJSHandler:
         return (wrapperDict, True)
 
     def checkProfile(self):
-        if mw.pm.name in config.get("Profiles") or ("all" in config.get("Profiles") or "All" in config.get("Profiles")):
+        if mw.pm.name in Config.get("Profiles") or ("all" in Config.get("Profiles") or "All" in Config.get("Profiles")):
             return True
         return False
 
     def injectWrapperElements(self):
         if not self.checkProfile():
             return
-        if not config.get("AutoCssJsGeneration"):
+        if not Config.get("AutoCssJsGeneration"):
             return
         variantCheck = self.checkVariantSyntax()
         stCheck = self.checkSimpTradSyntax()
@@ -282,7 +282,7 @@ class CSSJSHandler:
         return True
 
     def checkReadingType(self):
-        rType = config.get("ReadingType")
+        rType = Config.get("ReadingType")
         if rType not in ["pinyin", "bopomofo", "jyutping"]:
             info_window(
                 'The "'
@@ -316,10 +316,10 @@ class CSSJSHandler:
         return self.hanziConverterHeader + js + self.hanziConverterFooter
 
     def getRubyFontSize(self):
-        return ".pinyin-ruby{font-size:" + str(config.get("FontSize")) + "% !important;}"
+        return ".pinyin-ruby{font-size:" + str(Config.get("FontSize")) + "% !important;}"
 
     def getChineseCss(self):
-        toneColors = config.get("MandarinTones12345")
+        toneColors = Config.get("MandarinTones12345")
         css = (
             ".nightMode .unhovered-word .hanzi-ruby{color:white !important;}.unhovered-word .hanzi-ruby{color:inherit !important;}.unhovered-word .pinyin-ruby{visibility:hidden  !important;}"
             + self.getRubyFontSize()
@@ -334,7 +334,7 @@ class CSSJSHandler:
                 toneColor,
             )
             count += 1
-        toneColors = config.get("CantoneseTones123456")
+        toneColors = Config.get("CantoneseTones123456")
         count = 1
         for toneColor in toneColors:
             css += ".canTone%s{color:%s;}.ankidroid_dark_mode .canTone%s, .nightMode .cantone%s{color:%s;}" % (
@@ -430,7 +430,7 @@ class CSSJSHandler:
         return text
 
     def getReadingType(self):
-        return config.get("ReadingType")
+        return Config.get("ReadingType")
 
     def getChineseJs(self):
         js = '<script>(function(){const CHINESE_READING_TYPE ="' + self.getReadingType() + '";' + self.chineseParserJS + "})();</script>"
@@ -460,8 +460,8 @@ class CSSJSHandler:
         return re.sub(self.chineseCSSPattern, "", css)
 
     def injectChineseConverterToTemplate(self, t):
-        hc = config.get("hanziConversion")
-        rc = config.get("readingConversion")
+        hc = Config.get("hanziConversion")
+        rc = Config.get("readingConversion")
         if hc == "None" and rc == "None":
             t["qfmt"] = self.removeHanziConverterJs(t["qfmt"])
             t["afmt"] = self.removeHanziConverterJs(t["afmt"])
