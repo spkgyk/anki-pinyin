@@ -4,6 +4,7 @@ from .paths import (
     DATA_DIR,
     BASE_DIR,
     ICON_DIR,
+    LANG_DIR,
     SRC_DIR,
     JS_DIR,
 )
