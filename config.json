@@ -31,21 +31,21 @@
   ],
   "auto_generate_css_js": true,
   "ruby_font_scale_factor": 75,
-  "mandarin_tones": [
-    "#0055ff",
-    "#00aa00",
-    "#aa5500",
-    "#E60000",
-    "gray"
-  ],
-  "cantonese_tones": [
-    "#E60000",
-    "#E68A00",
-    "#00802B",
-    "#005CE6",
-    "#AC00E6",
-    "#c6c6c6"
-  ],
+  "mandarin_tones": {
+    "1": "#E60000",
+    "2": "#E68A00",
+    "3": "#00802B",
+    "4": "#005CE6",
+    "5": "#808080"
+  },
+  "cantonese_tones": {
+    "1": "#E60000",
+    "2": "#E68A00",
+    "3": "#00802B",
+    "4": "#005CE6",
+    "5": "#AC00E6",
+    "6": "#808080"
+  },
   "hanziConversion": "None",
   "readingConversion": "None"
 }

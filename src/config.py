@@ -3,7 +3,7 @@ import json
 from aqt import mw
 from typing import Any
 
-from .utils import BASE_DIR, ReadingType, FieldOutputModeList
+from .utils import BASE_DIR, ReadingType, FieldOutputModeDict
 
 
 class Config:
@@ -12,9 +12,9 @@ class Config:
 
     __default_reading_type = ReadingType(_default_config.get("reading_type"))
     __default_traditional_icons = bool(_default_config.get("traditional_icons"))
-    __default_simp_fields = FieldOutputModeList(_default_config.get("simp_fields"))
-    __default_trad_fields = FieldOutputModeList(_default_config.get("trad_fields"))
-    __default_variant_fields = FieldOutputModeList(_default_config.get("variant_fields"))
+    __default_simp_fields = FieldOutputModeDict(_default_config.get("simp_fields"))
+    __default_trad_fields = FieldOutputModeDict(_default_config.get("trad_fields"))
+    __default_variant_fields = FieldOutputModeDict(_default_config.get("variant_fields"))
 
     if mw and mw.addonManager:
         _config = mw.addonManager.getConfig(__name__)
@@ -23,17 +23,17 @@ class Config:
 
     reading_type = ReadingType(_config.get("reading_type"))
     traditional_icons = bool(_config.get("traditional_icons"))
-    simp_fields = FieldOutputModeList(_config.get("simp_fields"))
-    trad_fields = FieldOutputModeList(_config.get("trad_fields"))
-    variant_fields = FieldOutputModeList(_config.get("variant_fields"))
-    profiles = ""
-    active_fields = ""
-    auto_generate_css_js = ""
-    ruby_font_scale_factor = ""
-    mandarin_tones = ""
-    cantonese_tones = ""
-    hanziConversion = ""
-    readingConversion = ""
+    simp_fields = FieldOutputModeDict(_config.get("simp_fields"))
+    trad_fields = FieldOutputModeDict(_config.get("trad_fields"))
+    variant_fields = FieldOutputModeDict(_config.get("variant_fields"))
+    # profiles = list(_config.get("profiles"))
+    # active_fields = _config.get("active_fields")
+    # auto_generate_css_js = bool(_config.get("auto_generate_css_js"))
+    # ruby_font_scale_factor = int(_config.get("ruby_font_scale_factor"))
+    # mandarin_tones = _config.get("mandarin_tones")
+    # cantonese_tones = _config.get("cantonese_tones")
+    # hanziConversion = _config.get("hanziConversion")
+    # readingConversion = _config.get("readingConversion")
 
     def load_default(self):
         self.reading_type = self.__default_reading_type
