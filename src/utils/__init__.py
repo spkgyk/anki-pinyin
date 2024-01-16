@@ -17,7 +17,7 @@ from .functions import (
     set_value,
 )
 from .enums import OutputMode, ReadingType
-from .classes import FieldOutputModeDict
+from .classes import FieldOutputModeDict, ToneColorDict
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)

@@ -243,7 +243,6 @@ class CSSJSHandler:
                 model["css"] = self.editChineseCss(model["css"])
                 for idx, t in enumerate(model["tmpls"]):
                     modelDict = self.wrapperDict[model["name"]]
-                    t = self.injectChineseConverterToTemplate(t)
                     if self.templateInModelDict(t["name"], modelDict):
                         templateDict = self.templateFilteredDict(modelDict, t["name"])
                         t["qfmt"], t["afmt"] = self.cleanFieldWrappers(t["qfmt"], t["afmt"], model["flds"], templateDict)
@@ -263,7 +262,6 @@ class CSSJSHandler:
             else:
                 model["css"] = self.removeChineseCss(model["css"])
                 for t in model["tmpls"]:
-                    t = self.removeChineseConverterFromTemplate(t)
                     t["qfmt"] = self.removeChineseJs(self.removeWrappers(t["qfmt"]))
                     t["afmt"] = self.removeChineseJs(self.removeWrappers(t["afmt"]))
             mw.col.models.save(model)
@@ -448,7 +446,6 @@ class CSSJSHandler:
                 return text
         else:
             return self.newLineReduce(text + "\n" + chineseJS)
-        return
 
     def removeWrappers(self, text):
         pattern = r'<div reading-type="[^>]+?" display-type="[^>]+?" class="wrapped-chinese">({{[^}]+?}})</div>'
@@ -457,50 +454,3 @@ class CSSJSHandler:
 
     def removeChineseCss(self, css):
         return re.sub(self.chineseCSSPattern, "", css)
-
-    def injectChineseConverterToTemplate(self, t):
-        hc = Config.hanziConversion
-        rc = Config.readingConversion
-        if hc == "None" and rc == "None":
-            t["qfmt"] = self.removeHanziConverterJs(t["qfmt"])
-            t["afmt"] = self.removeHanziConverterJs(t["afmt"])
-            t["qfmt"] = self.removePinBopoConverterJs(t["qfmt"])
-            t["afmt"] = self.removePinBopoConverterJs(t["afmt"])
-        elif hc not in ["Traditional", "Simplified"] or hc == "None":
-            t["qfmt"] = self.removeHanziConverterJs(t["qfmt"])
-            t["afmt"] = self.removeHanziConverterJs(t["afmt"])
-        else:
-            t["qfmt"] = self.newLineReduce(self.removeHanziConverterJs(t["qfmt"]) + "\n\n" + self.getHanziConverterJs(hc))
-            t["afmt"] = self.newLineReduce(self.removeHanziConverterJs(t["afmt"]) + "\n\n" + self.getHanziConverterJs(hc))
-        if rc == "None" or rc not in ["Pinyin", "Bopomofo"]:
-            t["qfmt"] = self.removePinBopoConverterJs(t["qfmt"])
-            t["afmt"] = self.removePinBopoConverterJs(t["afmt"])
-        else:
-            t["qfmt"] = self.applyPinBopoConverterJS(rc, t["qfmt"])
-            t["afmt"] = self.applyPinBopoConverterJS(rc, t["afmt"])
-        return t
-
-    def applyPinBopoConverterJS(self, rc, text):
-        text = self.removePinBopoConverterJs(text)
-        if self.chineseParserHeader in text:
-            text = text.replace(self.chineseParserHeader, self.getPinBopoConverterJs(rc) + "\n\n" + self.chineseParserHeader)
-        else:
-            text = self.newLineReduce(text) + "\n\n" + self.getPinBopoConverterJs(rc)
-        return text
-
-    def getPinBopoConverterJs(self, rc):
-        if rc == "Pinyin":
-            js = self.toPinyinJS
-        else:
-            js = self.toBopoJS
-        return self.pinBopoConverterHeader + "<script>" + js + "</script>" + self.pinBopoConverterFooter
-
-    def removePinBopoConverterJs(self, text):
-        return re.sub(self.pinBopoConverterHeader + r".*?<\/script>" + self.pinBopoConverterFooter, "", text)
-
-    def removeChineseConverterFromTemplate(self, t):
-        t["qfmt"] = self.removeHanziConverterJs(t["qfmt"])
-        t["afmt"] = self.removeHanziConverterJs(t["afmt"])
-        t["qfmt"] = self.removePinBopoConverterJs(t["qfmt"])
-        t["afmt"] = self.removePinBopoConverterJs(t["afmt"])
-        return t

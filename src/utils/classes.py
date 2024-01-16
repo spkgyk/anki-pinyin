@@ -8,7 +8,13 @@ class FieldOutputModeDict(dict[str, OutputMode]):
     def to_set_text(self):
         return "Already selected fields:\n" + ", ".join(("{} ({})".format(field, output_mode.value) for field, output_mode in self.items()))
 
+    def to_json(self):
+        return {field: output_mode.value for field, output_mode in self.items()}
+
 
 class ToneColorDict(dict[int, str]):
     def __init__(self, tone_color_dict: dict[str, str]):
         super().__init__({int(tone): str(color) for tone, color in tone_color_dict.items()})
+
+    def to_json(self):
+        return {str(tone): str(color) for tone, color in self.items()}

@@ -35,19 +35,12 @@ class ReadingOptions(SettingsTab):
         self.lyt.addLayout(reading_layout)
         self.lyt.addLayout(trad_icons_layout)
 
-    def save(self):
-        Config.reading_type = ReadingType(self.reading_type_cb.currentText())
-        Config.traditional_icons = self.trad_icons_tb.isChecked()
-        Config.write()
-
-
-class FieldOptions(SettingsTab):
-    TITLE = "Fields"
-
-    def init_ui(self):
         self.collection = self.load_note_dict()
         self.fields = self.load_fields()
-        self.add_label("Setup the simplified, traditional and varients fields")
+        self.add_label(
+            "Setup the simplified, traditional and variant fields.\n"
+            "These fields will be automatically filled in conjunction with the focused field."
+        )
         fields_layout = QHBoxLayout()
 
         field_label_layout = QVBoxLayout()
@@ -151,10 +144,12 @@ class FieldOptions(SettingsTab):
         self.var_fields_label.setText(self.var_fields.to_set_text())
 
     def save(self):
+        Config.reading_type = ReadingType(self.reading_type_cb.currentText())
+        Config.traditional_icons = self.trad_icons_tb.isChecked()
         Config.simp_fields = self.simp_fields
         Config.trad_fields = self.trad_fields
         Config.variant_fields = self.var_fields
         Config.write()
 
 
-SETTINGS_TABS: list[SettingsTab] = [ReadingOptions, FieldOptions]
+SETTINGS_TABS: list[SettingsTab] = [ReadingOptions]
