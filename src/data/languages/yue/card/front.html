@@ -9,24 +9,28 @@
 <div class="migaku-card migaku-card-front">
     <div class="migaku-card-content">
         {{^Is Audio Card}}
-            {{^Is Vocabulary Card}}
-                <div class="field" data-reading="hover" data-tone-coloring="hover">{{editable:Sentence}}</div>
-            {{/Is Vocabulary Card}}
+        {{^Is Vocabulary Card}}
+        <div class="field" data-reading="hover" data-tone-coloring="hover">
+            {{editable:Sentence}}
+        </div>
+        {{/Is Vocabulary Card}}
         {{/Is Audio Card}}
         {{^Is Audio Card}}
-            {{#Is Vocabulary Card}}
-                <div class="field" data-reading="hover" data-tone-coloring="hover">{{editable:Target Word}}</div>
-            {{/Is Vocabulary Card}}
+        {{#Is Vocabulary Card}}
+        <div class="field" data-reading="hover" data-tone-coloring="hover">
+            {{editable:Target Word}}
+        </div>
+        {{/Is Vocabulary Card}}
         {{/Is Audio Card}}
         {{#Is Audio Card}}
-            {{^Is Vocabulary Card}}
-                {{editable:Sentence Audio}}
-            {{/Is Vocabulary Card}}
+        {{^Is Vocabulary Card}}
+        {{editable:Sentence Audio}}
+        {{/Is Vocabulary Card}}
         {{/Is Audio Card}}
         {{#Is Audio Card}}
-            {{#Is Vocabulary Card}}
-                {{editable:Word Audio}}
-            {{/Is Vocabulary Card}}
+        {{#Is Vocabulary Card}}
+        {{editable:Word Audio}}
+        {{/Is Vocabulary Card}}
         {{/Is Audio Card}}
     </div>
 </div>
