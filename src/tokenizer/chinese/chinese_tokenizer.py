@@ -57,7 +57,7 @@ class MandarinToken(BaseToken):
         if self.token:
             pinyin = self._gen_pinyin(word)
             jyutping = self._gen_jyutping(word)
-            if pinyin and pinyin[0] != self.surface:
+            if pinyin and pinyin[0] != self.token:
                 self.pinyin = pinyin
                 self.zhuyin = [self._to_zhuyin(p) for p in pinyin]
                 self.pinyin_tones = [self._to_pinyin_tone(p) for p in pinyin]
@@ -78,13 +78,13 @@ class MandarinToken(BaseToken):
                 elif reading_type == ReadingType.ZHUYIN_TONES:
                     reading = self.zhuyin_tones
 
-                if jyutping and jyutping[0] != self.surface:
+                if jyutping and jyutping[0] != self.token:
                     self.jyutping = jyutping
 
                 if reading_type != ReadingType.JYUTPING:
-                    self.display_token = "{}[{}]".format(self.surface, " ".join(reading))
+                    self.display_token = "{}[{}]".format(self.token, " ".join(reading))
                 elif self.jyutping and reading_type == ReadingType.JYUTPING:
-                    self.display_token = "{}[{}]".format(self.surface, " ".join(self.jyutping))
+                    self.display_token = "{}[{}]".format(self.token, " ".join(self.jyutping))
 
     @staticmethod
     @lru_cache(CACHE_SIZE)
