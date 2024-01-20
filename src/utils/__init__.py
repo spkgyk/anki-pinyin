@@ -17,8 +17,17 @@ from .functions import (
     set_value_space,
     set_value,
 )
-from .enums import OutputMode, ReadingType
-from .classes import FieldOutputModeDict, ToneColorDict
+from .enums import (
+    ToneColoring,
+    ReadingType,
+    ReadingMode,
+    OutputMode,
+    Language,
+)
+from .classes import (
+    FieldOutputModeDict,
+    ToneColorDict,
+)
 
 CACHE_SIZE = 500000
 add_to_path(VENDOR_DIR)

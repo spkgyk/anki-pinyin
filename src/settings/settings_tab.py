@@ -1,3 +1,4 @@
+from aqt import mw
 from aqt.qt import *
 from aqt.utils import openLink
 
@@ -46,6 +47,21 @@ class SettingsTab(QWidget):
         lbl = self.make_label(text)
         self.lyt.addWidget(lbl)
         return lbl
+
+    def load_note_dict(self):
+        all_models = mw.col.models.all()
+        self.collection = {}
+        self.fields = set()
+
+        for note in all_models:
+            self.collection[note["name"]] = {}
+            self.collection[note["name"]]["card_types"] = [ct["name"] for ct in note["tmpls"]]
+            self.collection[note["name"]]["fields"] = [f["name"] for f in note["flds"]]
+            self.collection[note["name"]]["id"] = note["id"]
+
+            self.fields.update(self.collection[note["name"]]["fields"])
+
+        self.fields = sorted(list(self.fields))
 
     class WizardPage(QWizardPage):
         def __init__(self, widget: "SettingsTab", parent: QWidget = None, is_tutorial: bool = True):
