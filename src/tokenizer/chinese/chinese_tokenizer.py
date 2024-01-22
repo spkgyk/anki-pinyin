@@ -5,8 +5,8 @@ from functools import lru_cache
 from ToJyutping import get_jyutping_list
 from pypinyin import lazy_pinyin, STYLE_TONE
 from pypinyin.style.bopomofo import BopomofoConverter
+from pypinyin_dict.phrase_pinyin_data import cc_cedict
 from pypinyin.contrib.tone_convert import tone_to_tone3
-from pypinyin_dict.phrase_pinyin_data import large_pinyin
 
 from ..base import BaseToken, BaseTokenizer
 from ...utils import (
@@ -17,7 +17,7 @@ from ...utils import (
     SQUARE_BR,
 )
 
-large_pinyin.load()
+cc_cedict.load()
 _bopomofo_converter = BopomofoConverter()
 _open_cc_simp2trad = OpenCC("s2t")
 _open_cc_trad2simp = OpenCC("t2s")
