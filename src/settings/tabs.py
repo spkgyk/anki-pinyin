@@ -1,10 +1,21 @@
+import platform
+
 from aqt.qt import *
 from copy import deepcopy
-from aqt.utils import showInfo
+from aqt.theme import theme_manager
 
 from ..config import Config
 from .settings_tab import SettingsTab
 from ..utils import ReadingType, OutputMode
+
+
+def is_windows_10():
+    system = platform.system()
+    release = platform.release()
+
+    if system == "Windows" and "10" in release:
+        return True
+    return False
 
 
 class ReadingOptions(SettingsTab):
@@ -136,73 +147,126 @@ class ReadingOptions(SettingsTab):
         Config.write()
 
 
-class CSSJSGenerationSettings(SettingsTab):
-    TITLE = "Notes"
+# class CSSJSGenerationSettings(SettingsTab):
+#     TITLE = "Notes"
 
-    def init_ui(self):
-        self.add_label("Automatic CSS JS generation settings.")
+#     def init_ui(self):
+#         self.add_label("Automatic CSS JS generation settings.")
 
-        self.load_note_dict()
+#         self.load_note_dict()
 
-        self.front_table = QTableWidget()
-        self.back_table = QTableWidget()
+#         self.autoCSSJS = QCheckBox()
+#         self.profileAF = QComboBox()
+#         self.noteTypeAF = QComboBox()
+#         self.cardTypeAF = QComboBox()
+#         self.fieldAF = QComboBox()
+#         self.sideAF = QComboBox()
+#         self.displayAF = QComboBox()
+#         self.readingAF = QComboBox()
+#         self.addEditAF = QPushButton("Add")
+#         self.afTable = self.getAFTable()
 
-        self.nt_cb = QComboBox()
-        self.ct_cb = QComboBox()
-        self.fb_cb = QComboBox()
+#         afl = QVBoxLayout()  # active fields layout
 
-        self.nt_cb.currentTextChanged.connect(self.reveal_ct)
-        self.nt_cb.addItems(sorted(self.collection.keys()))
+#         afh1 = QHBoxLayout()
+#         afh1.addWidget(QLabel("Auto CSS & JS Generation:"))
+#         afh1.addWidget(self.autoCSSJS)
+#         afh1.addStretch()
+#         afl.addLayout(afh1)
 
-        self.ct_cb.currentTextChanged.connect(self.load_table)
+#         afh2 = QHBoxLayout()
+#         afh2.addWidget(self.profileAF)
+#         afh2.addWidget(self.noteTypeAF)
+#         afh2.addWidget(self.cardTypeAF)
+#         afh2.addWidget(self.fieldAF)
+#         afh2.addWidget(self.sideAF)
+#         afh2.addWidget(self.displayAF)
+#         afh2.addWidget(self.readingAF)
+#         afl.addLayout(afh2)
 
-        self.fb_cb.currentTextChanged.connect(self.load_table)
+#         afh3 = QHBoxLayout()
+#         afh3.addStretch()
+#         afh3.addWidget(self.addEditAF)
+#         afl.addLayout(afh3)
 
-        self.lyt.addWidget(self.nt_cb)
-        self.lyt.addWidget(self.ct_cb)
-        self.lyt.addWidget(self.fb_cb)
+#         afl.addWidget(self.afTable)
 
-    def reveal_ct(self, text: str):
-        self.ct_cb.clear()
-        self.ct_cb.addItems(self.collection[text]["card_types"])
+#         self.lyt.addLayout(afl)
 
-        self.fb_cb.clear()
-        self.fb_cb.addItems(self.collection[text]["fields"])
+#         self.profileAF.currentIndexChanged.connect(self.profileChange)
 
-    def load_table(self, text):
-        front_back: list[tuple[str, QTableWidget]] = [("qfmt", self.front_table), ("afmt", self.back_table)]
-        # for fmt, list_widget in front_back:
-        #     list_widget.clear()
-        #     list_widget.verticalHeader().hide()
-        #     list_widget.setColumnCount(4)
-        #     list_widget.setHorizontalHeaderLabels(["Field", "Reading Type", "Reading Mode", "Tone Coloring"])
+#     def getAFTable(self):
+#         afTable = QTableWidget(self)
+#         if is_windows_10() and theme_manager.night_mode != True:
+#             afTable.setStyleSheet(
+#                 "QHeaderView::section{"
+#                 "border-top:0px solid #D8D8D8;"
+#                 "border-left:0px solid #D8D8D8;"
+#                 "border-right:1px solid #D8D8D8;"
+#                 "border-bottom: 1px solid #D8D8D8;"
+#                 "background-color:white;"
+#                 "padding:4px;"
+#                 "}"
+#                 "QTableCornerButton::section{"
+#                 "border-top:0px solid #D8D8D8;"
+#                 "border-left:0px solid #D8D8D8;"
+#                 "border-right:1px solid #D8D8D8;"
+#                 "border-bottom: 1px solid #D8D8D8;"
+#                 "background-color:white;"
+#                 "}"
+#             )
+#         afTable.setSortingEnabled(True)
+#         afTable.setColumnCount(8)
+#         afTable.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
+#         afTable.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+#         tableHeader = afTable.horizontalHeader()
+#         afTable.setHorizontalHeaderLabels(["Profile", "Note Type", "Card Type", "Field", "Side", "Display Type", "Reading Type", ""])
+#         tableHeader.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+#         tableHeader.setSectionResizeMode(7, QHeaderView.ResizeMode.Fixed)
+#         afTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+#         return afTable
 
-        #     list_widget.horizontalHeader().resizeSection(0, 200)
+#     def loadAllProfiles(self):
+#         if not self.sortedProfiles and not self.sortedNoteTypes:
+#             profL = []
+#             noteL = []
+#             for prof in self.cA:
+#                 profL.append(prof)
+#                 for noteType in self.cA[prof]:
+#                     noteL.append([noteType + " (Prof:" + prof + ")", prof + ":pN:" + noteType])
+#             self.sortedProfiles = self.ciSort(profL)
+#             self.sortedNoteTypes = sorted(noteL, key=itemgetter(0))
+#         aP = self.profileAF
+#         for prof in self.sortedProfiles:
+#             aP.addItem(prof)
+#             aP.setItemData(aP.count() - 1, prof, Qt.ToolTipRole)
+#         self.loadAllNotes()
 
-        #     list_widget.setRowCount(len(fields_settings))
+#     def loadAllNotes(self):
+#         for noteType in self.sortedNoteTypes:
+#             self.noteTypeAF.addItem(noteType[0])
+#             self.noteTypeAF.setItemData(self.noteTypeAF.count() - 1, noteType[0], Qt.ToolTipRole)
+#             self.noteTypeAF.setItemData(self.noteTypeAF.count() - 1, noteType[1])
 
-        #     for i, (field_name, field_settings) in enumerate(fields_settings):
-        #         if self.hide_field(field_name):
-        #             list_widget.hideRow(i)
-
-        #         field_name_clean = self.clean_field_name(field_name)
-
-        #         field_item = QTableWidgetItem(field_name_clean)
-        #         field_item.setFlags(field_item.flags() & ~(Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable))
-
-        #         list_widget.setItem(i, 0, field_item)
-
-        #         if self.current_lang:
-        #             for j, f in enumerate(self.current_lang.field_settings):
-        #                 setting_box = QComboBox()
-        #                 setting_box.addItems([f.label for f in f.options])
-        #                 list_widget.setCellWidget(i, j + 1, setting_box)
-        #                 if f.name in field_settings:
-        #                     value = field_settings[f.name]
-        #                     for k, o in enumerate(f.options):
-        #                         if o.value == value:
-        #                             setting_box.setCurrentIndex(k)
-        #                             break
+#     def profileChange(self):
+#         self.noteTypeAF.clear()
+#         self.cardTypeAF.clear()
+#         self.fieldAF.clear()
+#         if self.profileAF.currentIndex() == 0:
+#             self.loadAllNotes()
+#         else:
+#             prof = self.profileAF.currentText()
+#             for noteType in self.ciSort(self.cA[prof]):
+#                 self.noteTypeAF.addItem(noteType)
+#                 self.noteTypeAF.setItemData(self.noteTypeAF.count() - 1, noteType + " (Prof:" + prof + ")", Qt.ToolTipRole)
+#                 self.noteTypeAF.setItemData(self.noteTypeAF.count() - 1, prof + ":pN:" + noteType)
+#         self.loadCardTypesFields()
 
 
 SETTINGS_TABS: list[SettingsTab] = [ReadingOptions]

@@ -1,4 +1,5 @@
 PyYAML
+black
 # chinese
 jieba
 pypinyin

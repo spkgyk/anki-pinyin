@@ -3,6 +3,7 @@ dependencies:
  - pip
  - pip:
     #  - -i https://pypi.tuna.tsinghua.edu.cn/simple
+     - black
      - mypy
      - PyYAML
      - aqt[qt6]

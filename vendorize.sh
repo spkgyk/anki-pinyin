@@ -19,9 +19,10 @@ find src/vendor -type f -name "*.pyc" -delete
 find src/vendor -type d \( -name "examples" -o -name "demos" -o -name "samples" \) -exec rm -rf {} +
 find src/vendor -type f \( -name ".travis.yml" -o -name "setup.py" -o -name "Makefile" -o -name "build.sh" \) -delete
 find src/vendor -type d -path "*.dist-info" -exec rm -rf {} +
-find src/vendor/pypinyin_dict/phrase_pinyin_data -type f ! -name '*large*' -exec rm {} \;
+# find src/vendor/pypinyin_dict/phrase_pinyin_data -type f ! -name '*large*' -exec rm {} \;
 rm -rf src/vendor/pypinyin_dict/pinyin_data
 rm -rf src/vendor/_yaml
 rm -rf src/vendor/bin
 black . --line-length=140
+find src/vendor -name '*.py' -exec black {} +
 conda env create -f dev_env.yaml -y
