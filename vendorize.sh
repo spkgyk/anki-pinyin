@@ -24,5 +24,5 @@ rm -rf src/vendor/pypinyin_dict/pinyin_data
 rm -rf src/vendor/_yaml
 rm -rf src/vendor/bin
 black . --line-length=140
-find src/vendor -name '*.py' -exec black {} +
+find src/vendor -name '*.py' -exec black --line-length=140 {} +
 conda env create -f dev_env.yaml -y
