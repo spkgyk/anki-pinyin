@@ -1,7 +1,5 @@
 from aqt import mw
-from aqt.qt import QIcon, QMessageBox, QWidget
-
-from . import DATA_DIR
+from aqt.qt import QMessageBox, QWidget
 
 
 def info_window(text: str, parent: QWidget = None, level: str = "msg", day: bool = True):
@@ -15,12 +13,10 @@ def info_window(text: str, parent: QWidget = None, level: str = "msg", day: bool
         title = "Info"
     if parent is None:
         parent = mw.app.activeWindow() or mw
-    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
     message_box = QMessageBox(parent)
     if not day:
         message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
     message_box.setText(text)
-    message_box.setWindowIcon(icon)
     message_box.setWindowTitle(title)
     button = message_box.addButton(QMessageBox.StandardButton.Ok)
     button.setFixedSize(100, 30)
@@ -33,7 +29,6 @@ def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
     message_box = QMessageBox(parent)
     message_box.setWindowTitle("Select")
     message_box.setText(text)
-    icon = QIcon(str(DATA_DIR / "icons" / "migaku.png"))
     yes_button = message_box.addButton(QMessageBox.StandardButton.Yes)
     yes_button.setFixedSize(100, 30)
     yes_button.setDefault(True)
@@ -41,7 +36,6 @@ def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
     no_button.setFixedSize(100, 30)
     if not day:
         message_box.setStyleSheet(" QMessageBox {background-color: #272828;}")
-    message_box.setWindowIcon(icon)
     message_box.exec()
     if message_box.clickedButton() == yes_button:
         return True
