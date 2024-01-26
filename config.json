@@ -12,40 +12,5 @@
   "variant_fields": {
     "Variant": "Overwrite",
     "Var": "Overwrite"
-  },
-  "profiles": [
-    "All"
-  ],
-  "active_fields": [
-    "coloredhanzireading;all;Chinese Listening;Listening;Expression;back;pinyin",
-    "coloredhanzireading;all;Chinese Listening;Listening;Meaning;back;pinyin",
-    "coloredhanzireading;all;Chinese Listening;Listening;Traditional;back;pinyin",
-    "coloredhanzireading;all;Chinese Listening;Listening;Notes;back;pinyin",
-    "coloredhanzireading;all;Chinese Listening;Listening;SubNotes;back;pinyin",
-    "coloredhover;all;Chinese Reading;Reading;Expression;front;pinyin",
-    "coloredhanzireading;all;Chinese Reading;Reading;Expression;back;pinyin",
-    "coloredhanzireading;all;Chinese Reading;Reading;Meaning;back;pinyin",
-    "coloredhanzireading;all;Chinese Reading;Reading;Traditional;back;pinyin",
-    "coloredhanzireading;all;Chinese Reading;Reading;Notes;back;pinyin",
-    "coloredhanzireading;all;Chinese Reading;Reading;SubNotes;back;pinyin"
-  ],
-  "auto_generate_css_js": true,
-  "ruby_font_scale_factor": 75,
-  "mandarin_tones": {
-    "1": "#E60000",
-    "2": "#E68A00",
-    "3": "#00802B",
-    "4": "#005CE6",
-    "5": "#808080"
-  },
-  "cantonese_tones": {
-    "1": "#E60000",
-    "2": "#E68A00",
-    "3": "#00802B",
-    "4": "#005CE6",
-    "5": "#AC00E6",
-    "6": "#808080"
-  },
-  "hanziConversion": "None",
-  "readingConversion": "None"
+  }
 }
