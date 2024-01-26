@@ -31,4 +31,4 @@ For any issues, questions, or feature requests, please open an issue on the GitH
 Contributions are welcome! If you'd like to contribute to the development of this addon, please fork the GitHub repository and submit a pull request.
 
 ## License
-This addon is released under the [MIT License](LICENSE.md).
+This addon is released under the [MIT License](LICENSE).
