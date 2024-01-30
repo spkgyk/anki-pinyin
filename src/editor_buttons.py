@@ -1,8 +1,12 @@
+from aqt import mw
 from aqt.editor import Editor
 
 from .config import Config
-from .utils import apply_output_mode, DATA_DIR
+from .tts import TTSDownloader
+from .utils import apply_output_mode, ICON_DIR
 from .tokenizer import strip_display_format, gen_display_format
+
+mw.downloader = None
 
 
 def editor_generate_readings(editor: Editor):
@@ -32,12 +36,28 @@ def editor_strip_readings(editor: Editor):
         editor.loadNoteKeepingFocus()
 
 
+def editor_generate_audio(editor: Editor):
+    current_field_id = editor.currentField
+    if current_field_id is not None:
+        if not mw.downloader:
+            mw.downloader = TTSDownloader()
+        selected_text = strip_display_format(editor.note.fields[current_field_id], "cn")
+        filename = mw.downloader.tts_download(selected_text)
+
+        for field_name in editor.note.keys():
+            if field_name in Config.audio_fields:
+                editor.note[field_name] = filename
+
+        editor.loadNoteKeepingFocus()
+
+
 def add_editor_buttons(buttons: list[str], editor: Editor):
-    du_icon = str(DATA_DIR / "icons" / "simpDu.svg")
-    shan_icon = str(DATA_DIR / "icons" / "simpShan.svg")
+    du_icon = str(ICON_DIR / "simpDu.svg")
+    shan_icon = str(ICON_DIR / "simpShan.svg")
     if Config.traditional_icons:
-        du_icon = str(DATA_DIR / "icons" / "tradDu.svg")
-        shan_icon = str(DATA_DIR / "icons" / "tradShan.svg")
+        du_icon = str(ICON_DIR / "tradDu.svg")
+        shan_icon = str(ICON_DIR / "tradShan.svg")
+    audio_icon = str(ICON_DIR / "audio.svg")
 
     buttons.append(
         editor.addButton(
@@ -55,5 +75,14 @@ def add_editor_buttons(buttons: list[str], editor: Editor):
             func=lambda editor=editor: editor_strip_readings(editor),
             tip="Strip readings from the selected field",
             keys="f10",
+        )
+    )
+    buttons.append(
+        editor.addButton(
+            icon=audio_icon,
+            cmd="editor_generate_audio",
+            func=lambda editor=editor: editor_generate_audio(editor),
+            tip="Generate audio for the selected field",
+            keys="",
         )
     )

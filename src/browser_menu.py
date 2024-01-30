@@ -5,25 +5,10 @@ from anki.notes import NoteId
 from aqt.browser import Browser
 
 from .config import Config
-from .user_messages import yes_no_window, info_window
+from .tts import TTSDownloader
 from .tokenizer import strip_display_format, gen_display_format
 from .utils import ReadingType, OutputMode, ICON_DIR, apply_output_mode
-
-
-def get_progress_bar_widget(length: int):
-    progress_widget = QWidget(None)
-    progress_widget.setFixedSize(400, 70)
-    progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progress_widget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
-    bar = QProgressBar(progress_widget)
-    bar.setFixedSize(390, 50)
-    bar.move(10, 10)
-    bar_label = QLabel(bar)
-    bar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    progress_widget.show()
-    bar.setMinimum(0)
-    bar.setMaximum(length)
-    return progress_widget, bar
+from .user_messages import yes_no_window, info_window, get_progress_bar_widget
 
 
 def browser_mass_generate_readings(
@@ -79,6 +64,10 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
         bar.setValue(i)
         mw.app.processEvents()
     mw.progress.finish()
+
+
+def browser_mass_generate_audio(source: str, notes: Sequence[NoteId], widget: QDialog):
+    dl = TTSDownloader()
 
 
 def browser_menu(browser: Browser):

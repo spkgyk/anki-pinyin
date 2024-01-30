@@ -6,11 +6,15 @@
     "Simp": "Overwrite"
   },
   "trad_fields": {
+    "Alternate Sentence": "Overwrite",
     "Traditional": "Overwrite",
     "Trad": "Overwrite"
   },
   "variant_fields": {
     "Variant": "Overwrite",
     "Var": "Overwrite"
-  }
+  },
+  "audio_fields": [
+    "Sentence Audio"
+  ]
 }

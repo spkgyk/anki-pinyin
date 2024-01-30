@@ -1,5 +1,5 @@
 from aqt import mw
-from aqt.qt import QMessageBox, QWidget
+from aqt.qt import *
 
 
 def info_window(text: str, parent: QWidget = None, level: str = "msg", day: bool = True):
@@ -41,3 +41,30 @@ def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
         return True
     else:
         return False
+
+
+def get_progress_bar_widget(length: int):
+    progress_widget = QWidget()
+    progress_widget.setFixedSize(400, 50)
+    progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
+
+    layout = QVBoxLayout()
+    progress_widget.setLayout(layout)
+
+    bar = QProgressBar()
+    bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    bar.setFixedHeight(30)
+    bar.setMinimum(0)
+    bar.setMaximum(length)
+
+    bar_label = QLabel()
+    bar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    bar_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    bar_label.setFixedHeight(20)
+
+    layout.addWidget(bar)
+    layout.addWidget(bar_label)
+
+    progress_widget.show()
+
+    return progress_widget, bar
