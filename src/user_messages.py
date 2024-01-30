@@ -53,7 +53,9 @@ def get_progress_bar_widget(length: int):
 
     bar = QProgressBar()
     bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    bar.setMinimum(0)
     bar.setMaximum(length)
+    bar.setValue(0)
 
     layout.addWidget(bar)
 

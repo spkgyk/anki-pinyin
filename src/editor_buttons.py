@@ -6,8 +6,6 @@ from .tts import TTSDownloader
 from .utils import apply_output_mode, ICON_DIR
 from .tokenizer import strip_display_format, gen_display_format
 
-mw.downloader = None
-
 
 def editor_generate_readings(editor: Editor):
     current_field_id = editor.currentField
@@ -39,8 +37,7 @@ def editor_strip_readings(editor: Editor):
 def editor_generate_audio(editor: Editor):
     current_field_id = editor.currentField
     if current_field_id is not None:
-        if not mw.downloader:
-            mw.downloader = TTSDownloader()
+        mw.downloader = TTSDownloader()
         selected_text = strip_display_format(editor.note.fields[current_field_id], "cn")
         filename = mw.downloader.tts_download(selected_text, True)
 

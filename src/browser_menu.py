@@ -10,8 +10,6 @@ from .utils import ReadingType, OutputMode, apply_output_mode
 from .tokenizer import strip_display_format, gen_display_format
 from .user_messages import yes_no_window, info_window, get_progress_bar_widget
 
-mw.downloader = None
-
 
 def browser_mass_generate_readings(
     source: str,
@@ -75,8 +73,7 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
         return
     mw.checkpoint("Chinese Audio Generation")
     widget.close()
-    if not mw.downloader:
-        mw.downloader = TTSDownloader()
+    mw.downloader = TTSDownloader()
 
     progress_widget, bar = get_progress_bar_widget(len(notes))
     for i, nid in enumerate(notes):

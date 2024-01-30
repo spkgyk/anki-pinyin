@@ -31,6 +31,9 @@ class TTSDownloader:
     )
 
     def __init__(self):
+        self._get_webpage()
+
+    def _get_webpage(self):
         self.download_directory = DATA_DIR / "audio"
 
         options = EdgeOptions()
@@ -46,13 +49,20 @@ class TTSDownloader:
         self.driver.get(TTSDownloader.web_page)
 
     def tts_download(self, text: str, progress_bar=False):
+        try:
+            self._download(text, progress_bar)
+        except:
+            self._get_webpage()
+            self._download(text, progress_bar)
+
+    def _download(self, text: str, progress_bar=False):
         if progress_bar:
             progress_widget, bar = get_progress_bar_widget(4)
 
         # start the progress bar
         if progress_bar:
             bar.setValue(0)
-            mw.app.processEvents()
+        mw.app.processEvents()
 
         # find the elements
         language_dropdown = self.driver.find_element(By.ID, "languages")
@@ -67,14 +77,15 @@ class TTSDownloader:
         voices_dropdown_select.select_by_value("zh-CN-XiaoqiuNeural")
 
         # send text to micmonster
+        text_area.clear()
         text_area.send_keys(text)
         if progress_bar:
             bar.setValue(1)
-            mw.app.processEvents()
+        mw.app.processEvents()
 
         # generate audio for text
         generate_button.click()
-        wait = WebDriverWait(self.driver, 100)
+        wait = WebDriverWait(self.driver, 40)
         wait.until(
             expected_conditions.text_to_be_present_in_element(
                 (By.CSS_SELECTOR, TTSDownloader.audio_ready_selector),
@@ -83,7 +94,7 @@ class TTSDownloader:
         )
         if progress_bar:
             bar.setValue(2)
-            mw.app.processEvents()
+        mw.app.processEvents()
 
         # download audio file
         all_files = os.listdir(self.download_directory)
@@ -94,16 +105,16 @@ class TTSDownloader:
             sleep(0.1)
         if progress_bar:
             bar.setValue(3)
-            mw.app.processEvents()
+        mw.app.processEvents()
 
         # return to homepage
         return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
         return_button.click()
-        wait = WebDriverWait(self.driver, 100)
+        wait = WebDriverWait(self.driver, 20)
         wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
         if progress_bar:
             bar.setValue(4)
-            mw.app.processEvents()
+        mw.app.processEvents()
 
         # move file to anki media folder
         hasher = sha256()
