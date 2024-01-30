@@ -2,8 +2,10 @@ import os
 import shutil
 
 from time import sleep
+from io import StringIO
 from pathlib import Path
 from hashlib import sha256
+from html.parser import HTMLParser
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Edge, EdgeOptions
 from selenium.webdriver.edge.service import Service
@@ -14,6 +16,27 @@ from aqt import mw
 
 from ..utils import TTS_DIR, DATA_DIR
 from ..user_messages import get_progress_bar_widget
+
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.text = StringIO()
+
+    def handle_data(self, d):
+        self.text.write(d)
+
+    def get_data(self):
+        return self.text.getvalue()
+
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
 
 
 class TTSDownloader:
@@ -37,8 +60,8 @@ class TTSDownloader:
         self.download_directory = DATA_DIR / "audio"
 
         options = EdgeOptions()
-        options.add_argument("--headless")
-        options.add_argument("window-size=1920,1080")
+        # options.add_argument("--headless")
+        # options.add_argument("window-size=1920,1080")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--enable-chrome-browser-cloud-management")
         options.add_experimental_option("prefs", {"download.default_directory": str(self.download_directory)})
@@ -49,9 +72,11 @@ class TTSDownloader:
         self.driver.get(TTSDownloader.web_page)
 
     def tts_download(self, text: str, progress_bar=False):
+        text = strip_tags(text)
         try:
             self._download(text, progress_bar)
         except:
+            self.close()
             self._get_webpage()
             self._download(text, progress_bar)
 
