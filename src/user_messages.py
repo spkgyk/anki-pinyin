@@ -52,18 +52,10 @@ def get_progress_bar_widget(length: int):
     progress_widget.setLayout(layout)
 
     bar = QProgressBar()
-    bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-    bar.setFixedHeight(30)
-    bar.setMinimum(0)
+    bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     bar.setMaximum(length)
 
-    bar_label = QLabel()
-    bar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    bar_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-    bar_label.setFixedHeight(20)
-
     layout.addWidget(bar)
-    layout.addWidget(bar_label)
 
     progress_widget.show()
 
