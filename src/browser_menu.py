@@ -6,9 +6,11 @@ from aqt.browser import Browser
 
 from .config import Config
 from .tts import TTSDownloader
+from .utils import ReadingType, OutputMode, apply_output_mode
 from .tokenizer import strip_display_format, gen_display_format
-from .utils import ReadingType, OutputMode, ICON_DIR, apply_output_mode
 from .user_messages import yes_no_window, info_window, get_progress_bar_widget
+
+mw.downloader = None
 
 
 def browser_mass_generate_readings(
@@ -19,9 +21,9 @@ def browser_mass_generate_readings(
     notes: Sequence[NoteId],
     widget: QDialog,
 ):
-    mw.checkpoint("Chinese Reading Generation")
     if not yes_no_window('Extract characters from the "' + source + '" field\nand use to generate readings in the "' + dest + '" field?'):
         return
+    mw.checkpoint("Chinese Reading Generation")
     widget.close()
     progress_widget, bar = get_progress_bar_widget(len(notes))
 
@@ -66,8 +68,27 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     mw.progress.finish()
 
 
-def browser_mass_generate_audio(source: str, notes: Sequence[NoteId], widget: QDialog):
-    dl = TTSDownloader()
+def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode, notes: Sequence[NoteId], widget: QDialog):
+    if not yes_no_window(
+        f'Generate audio using the "{source}" field for the {len(notes)} selected notes and place it in the "{dest}" field?'
+    ):
+        return
+    mw.checkpoint("Chinese Audio Generation")
+    widget.close()
+    if not mw.downloader:
+        mw.downloader = TTSDownloader()
+
+    progress_widget, bar = get_progress_bar_widget(len(notes))
+    for i, nid in enumerate(notes):
+        note = mw.col.get_note(nid)
+        fields = note.keys()
+        if source in fields and dest in fields:
+            selected_text = strip_display_format(note.fields[source], "cn")
+            note[dest] = apply_output_mode(output_mode, note[dest], mw.downloader.tts_download(selected_text))
+            mw.col.update_note(note)
+        bar.setValue(i)
+        mw.app.processEvents()
+    mw.progress.finish()
 
 
 def browser_menu(browser: Browser):
@@ -104,6 +125,16 @@ def browser_menu(browser: Browser):
         )
         remove_button = QPushButton("Remove Readings")
         remove_button.clicked.connect(lambda: browser_mass_strip_readings(source_cb.currentText(), notes, generateWidget))
+        generate_audio_button = QPushButton("Generate Audio")
+        generate_audio_button.clicked.connect(
+            lambda: browser_mass_generate_audio(
+                source_cb.currentText(),
+                dest_cb.currentText(),
+                OutputMode(output_mode_cb.currentText()),
+                notes,
+                generateWidget,
+            )
+        )
         layout.addWidget(source_label)
         layout.addWidget(source_cb)
         layout.addWidget(dest_label)
@@ -114,8 +145,8 @@ def browser_menu(browser: Browser):
         layout.addWidget(reading_type_cb)
         layout.addWidget(add_button)
         layout.addWidget(remove_button)
+        layout.addWidget(generate_audio_button)
         generateWidget.setWindowTitle("Generate Chinese Readings")
-        generateWidget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
         generateWidget.setLayout(layout)
         generateWidget.exec()
     else:
