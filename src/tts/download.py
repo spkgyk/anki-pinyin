@@ -74,7 +74,7 @@ class TTSDownloader:
 
         # generate audio for text
         generate_button.click()
-        wait = WebDriverWait(self.driver, 20)
+        wait = WebDriverWait(self.driver, 100)
         wait.until(
             expected_conditions.text_to_be_present_in_element(
                 (By.CSS_SELECTOR, TTSDownloader.audio_ready_selector),
@@ -99,7 +99,7 @@ class TTSDownloader:
         # return to homepage
         return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
         return_button.click()
-        wait = WebDriverWait(self.driver, 20)
+        wait = WebDriverWait(self.driver, 100)
         wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
         if progress_bar:
             bar.setValue(4)
