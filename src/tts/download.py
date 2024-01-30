@@ -45,12 +45,14 @@ class TTSDownloader:
         self.driver = Edge(options, service)
         self.driver.get(TTSDownloader.web_page)
 
-    def tts_download(self, text: str):
-        progress_widget, bar = get_progress_bar_widget(4)
+    def tts_download(self, text: str, progress_bar=False):
+        if progress_bar:
+            progress_widget, bar = get_progress_bar_widget(4)
 
         # start the progress bar
-        bar.setValue(0)
-        mw.app.processEvents()
+        if progress_bar:
+            bar.setValue(0)
+            mw.app.processEvents()
 
         # find the elements
         language_dropdown = self.driver.find_element(By.ID, "languages")
@@ -66,8 +68,9 @@ class TTSDownloader:
 
         # send text to micmonster
         text_area.send_keys(text)
-        bar.setValue(1)
-        mw.app.processEvents()
+        if progress_bar:
+            bar.setValue(1)
+            mw.app.processEvents()
 
         # generate audio for text
         generate_button.click()
@@ -78,8 +81,9 @@ class TTSDownloader:
                 "Your Audio is Ready",
             )
         )
-        bar.setValue(2)
-        mw.app.processEvents()
+        if progress_bar:
+            bar.setValue(2)
+            mw.app.processEvents()
 
         # download audio file
         all_files = os.listdir(self.download_directory)
@@ -88,16 +92,18 @@ class TTSDownloader:
         filename = self.download_directory / "zh-CN-XiaoqiuNeural{}.mp3".format(f" ({len(all_files)})" if len(all_files) else "")
         while not filename.exists():
             sleep(0.1)
-        bar.setValue(3)
-        mw.app.processEvents()
+        if progress_bar:
+            bar.setValue(3)
+            mw.app.processEvents()
 
         # return to homepage
         return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
         return_button.click()
         wait = WebDriverWait(self.driver, 20)
         wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
-        bar.setValue(4)
-        mw.app.processEvents()
+        if progress_bar:
+            bar.setValue(4)
+            mw.app.processEvents()
 
         # move file to anki media folder
         hasher = sha256()
@@ -112,7 +118,8 @@ class TTSDownloader:
         if filename.exists():
             os.remove(filename)
 
-        mw.progress.finish()
+        if progress_bar:
+            mw.progress.finish()
 
         return audio_tag
 

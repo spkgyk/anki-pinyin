@@ -42,7 +42,7 @@ def editor_generate_audio(editor: Editor):
         if not mw.downloader:
             mw.downloader = TTSDownloader()
         selected_text = strip_display_format(editor.note.fields[current_field_id], "cn")
-        filename = mw.downloader.tts_download(selected_text)
+        filename = mw.downloader.tts_download(selected_text, True)
 
         for field_name in editor.note.keys():
             if field_name in Config.audio_fields:

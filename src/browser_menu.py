@@ -83,7 +83,7 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
         note = mw.col.get_note(nid)
         fields = note.keys()
         if source in fields and dest in fields:
-            selected_text = strip_display_format(note.fields[source], "cn")
+            selected_text = strip_display_format(note[source], "cn")
             note[dest] = apply_output_mode(output_mode, note[dest], mw.downloader.tts_download(selected_text))
             mw.col.update_note(note)
         bar.setValue(i)
