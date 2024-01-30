@@ -4,9 +4,8 @@ from .paths import (
     DATA_DIR,
     BASE_DIR,
     ICON_DIR,
-    LANG_DIR,
     SRC_DIR,
-    JS_DIR,
+    TTS_DIR,
 )
 from .functions import (
     PUNCTUATION_EMOJI_SPACE,

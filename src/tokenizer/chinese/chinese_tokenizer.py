@@ -25,7 +25,7 @@ _simp_trad_map_path = VENDOR_DIR / "opencc" / "dictionary" / "STCharacters.txt"
 
 simp_trad_map = {}
 all_simp_chars = ""
-with _simp_trad_map_path.open("r") as f:
+with _simp_trad_map_path.open("r", encoding="utf-8") as f:
     simp_trad_map_list = f.readlines()
     for item in simp_trad_map_list:
         item = item.strip()
