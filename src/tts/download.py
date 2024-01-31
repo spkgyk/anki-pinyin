@@ -1,11 +1,11 @@
 import os
 import shutil
 
-from time import sleep
 from io import StringIO
 from pathlib import Path
 from hashlib import sha256
 from threading import Lock
+from time import sleep, time
 from html.parser import HTMLParser
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Edge, EdgeOptions
@@ -18,6 +18,9 @@ from aqt.utils import showInfo
 
 from ..utils import TTS_DIR, AUDIO_DIR
 from ..user_messages import get_progress_bar_widget
+
+
+DOWNLOAD_LOCK = Lock()
 
 
 class MLStripper(HTMLParser):
@@ -42,7 +45,6 @@ def strip_tags(html):
 
 
 class TTSDownloader:
-    lock = Lock()
     web_page = "https://micmonster.com/"
     test_area_selector = "#app > div:nth-child(1) > section > div:nth-child(2) > textarea"
     generate_button_selector = "#app > div:nth-child(1) > section > div:nth-child(2) > div.row-center-between.mt-2 > button"
@@ -127,17 +129,18 @@ class TTSDownloader:
         mw.app.processEvents()
 
         # download audio file
-        with TTSDownloader.lock:
+        with DOWNLOAD_LOCK:
+            start_time = time()
+            files = len(os.listdir(AUDIO_DIR))
             download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
             download_button.click()
-            # wait for download to start
-            sleep(0.1)
 
-            # check if it's still downloading...
-            while self._check_for_downloads():
+            # wait for download to start
+            while (len(os.listdir(AUDIO_DIR)) == files) or self._check_for_downloads() or (time() - start_time < 10):
                 sleep(0.1)
 
             latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
+            assert latest_file.endswith("mp3")
             filename = AUDIO_DIR / latest_file
         if progress_bar:
             bar.setValue(3)
@@ -158,7 +161,7 @@ class TTSDownloader:
         return audio_tag
 
     def _check_for_downloads(self):
-        return [f for f in os.listdir(AUDIO_DIR) if f.endswith(".crdownload")]
+        return [f for f in os.listdir(AUDIO_DIR) if not f.endswith(".mp3")]
 
     def close(self):
         self.driver.quit()
