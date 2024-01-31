@@ -131,19 +131,19 @@ class TTSDownloader:
         mw.app.processEvents()
 
         # download audio file
+        download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
         with DOWNLOAD_LOCK:
             start_time = time()
             files = len(os.listdir(AUDIO_DIR))
-            download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
             download_button.click()
 
             # wait for download to start
             while (len(os.listdir(AUDIO_DIR)) == files) or self._check_for_downloads() or (time() - start_time < 10):
                 sleep(0.1)
 
-            latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
-            assert latest_file.endswith("mp3")
-            filename = AUDIO_DIR / latest_file
+        latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
+        assert latest_file.endswith("mp3")
+        filename = AUDIO_DIR / latest_file
         if progress_bar:
             bar.setValue(3)
         mw.app.processEvents()
