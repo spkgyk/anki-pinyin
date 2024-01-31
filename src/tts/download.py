@@ -138,7 +138,7 @@ class TTSDownloader:
             download_button.click()
 
             # wait for download to start
-            while (len(os.listdir(AUDIO_DIR)) == files) or self._check_for_downloads() or (time() - start_time < 10):
+            while (len(os.listdir(AUDIO_DIR)) == files) or (time() - start_time < 10):
                 sleep(0.1)
 
         latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
@@ -161,9 +161,6 @@ class TTSDownloader:
             mw.progress.finish()
 
         return audio_tag
-
-    def _check_for_downloads(self):
-        return [f for f in os.listdir(AUDIO_DIR) if not f.endswith(".mp3")]
 
     def close(self):
         self.driver.quit()
