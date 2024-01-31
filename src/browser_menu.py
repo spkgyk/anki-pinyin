@@ -8,8 +8,8 @@ from aqt.browser import Browser
 
 from .config import Config
 from .tts import TTSDownloader
-from .utils import ReadingType, OutputMode, apply_output_mode
 from .tokenizer import strip_display_format, gen_display_format
+from .utils import ReadingType, OutputMode, apply_output_mode, AUDIO_DIR
 from .user_messages import yes_no_window, info_window, get_progress_bar_widget
 
 
@@ -75,28 +75,22 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
         return
     mw.checkpoint("Chinese Audio Generation")
     widget.close()
-    mw.downloader = TTSDownloader()
+    downloader = TTSDownloader()
 
     progress_widget, bar = get_progress_bar_widget(len(notes))
-
-    filenames = []
 
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = note.keys()
         if source in fields and dest in fields:
             selected_text = strip_display_format(note[source], "cn")
-            note[dest] = apply_output_mode(output_mode, note[dest], mw.downloader.tts_download(selected_text))
+            audio_tag = downloader.tts_download(selected_text)
+            note[dest] = apply_output_mode(output_mode, note[dest], audio_tag)
             mw.col.update_note(note)
         bar.setValue(i)
         mw.app.processEvents()
 
-    filenames = sorted(filenames)
-
-    assert len(filenames) == len(notes)
-    assert len(set(filenames)) == len(filenames)
-    assert AUDIO_DIR / "zh-CN-XiaoqiuNeural.mp3" in filenames
-    assert AUDIO_DIR / f"zh-CN-XiaoqiuNeural ({len(notes)-1}).mp3" in filenames
+    downloader.close()
 
     shutil.rmtree(AUDIO_DIR)
     os.makedirs(AUDIO_DIR)

@@ -59,8 +59,7 @@ class TTSDownloader:
 
     def _get_webpage(self):
         options = EdgeOptions()
-        # options.add_argument("--headless")
-        options.add_argument("--start-maximized")
+        options.add_argument("--headless")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--enable-chrome-browser-cloud-management")
         options.add_experimental_option("prefs", {"download.default_directory": str(AUDIO_DIR)})
@@ -68,6 +67,7 @@ class TTSDownloader:
         service = Service(executable_path=str(TTS_DIR / "msedgedriver.exe"))
 
         self.driver = Edge(options, service)
+        self.driver.set_window_size(1920, 1080)
         self.driver.get(TTSDownloader.web_page)
 
     def tts_download(self, text: str, progress_bar=False, number_of_attempts=5):
@@ -75,8 +75,7 @@ class TTSDownloader:
 
         for attempt in range(number_of_attempts):
             try:
-                audio_tag, filename = self._download(text, progress_bar)
-                return audio_tag, filename
+                return self._download(text, progress_bar)
             except Exception as e:
                 if attempt < number_of_attempts - 1:
                     self.close()
@@ -157,7 +156,7 @@ class TTSDownloader:
         if progress_bar:
             mw.progress.finish()
 
-        return audio_tag, filename
+        return audio_tag
 
     def close(self):
         self.driver.quit()
