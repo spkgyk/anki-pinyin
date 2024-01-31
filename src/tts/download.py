@@ -67,8 +67,7 @@ class TTSDownloader:
         service = Service(executable_path=str(TTS_DIR / "msedgedriver.exe"))
 
         self.driver = Edge(options, service)
-        self.driver.set_window_size(1280, 720)
-        self.driver.get(TTSDownloader.web_page)
+        self.driver.maximize_window()
 
     def tts_download(self, text: str, progress_bar=False, number_of_attempts=5):
         text = strip_tags(text)
@@ -84,6 +83,8 @@ class TTSDownloader:
                     showInfo(f"Attempt {attempt + 1} failed: {e}\nText: {text}")
 
     def _download(self, text: str, progress_bar=False):
+        self.driver.get(TTSDownloader.web_page)
+
         if progress_bar:
             progress_widget, bar = get_progress_bar_widget(4)
 
