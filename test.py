@@ -11,22 +11,26 @@
 import os
 from time import sleep
 from selenium.webdriver.common.by import By
-from selenium.webdriver import Edge, EdgeOptions
 from selenium.webdriver.edge.service import Service
+from selenium.webdriver import Firefox, FirefoxOptions
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
-from src.utils import TTS_DIR, DATA_DIR
+from src.utils import TTS_DIR, DATA_DIR, AUDIO_DIR
 
 download_directory = DATA_DIR / "audio"
 
-options = EdgeOptions()
-options.add_argument("--enable-chrome-browser-cloud-management")
-options.add_argument("--disable-popup-blocking")  # Disable the file download dialog
-options.add_experimental_option("prefs", {"download.default_directory": str(download_directory)})
+options = FirefoxOptions()
+options.add_argument("--headless")
+# options.add_argument("--start-maximized")
+options.add_argument("--window-size=1920,1080")
+options.set_preference("browser.download.folderList", 2)
+options.set_preference("browser.download.dir", str(AUDIO_DIR))
+options.set_preference("browser.download.manager.showWhenStarting", False)
+options.set_preference("browser.helperApps.neverAsk.saveToDisk", "audio/mpeg")
 
-service = Service(executable_path=str(TTS_DIR / "msedgedriver.exe"))
+service = Service(executable_path=str(TTS_DIR / "geckodriver.exe"))
 
-driver = Edge(options, service)
+driver = Firefox(options, service)
 driver.get("https://micmonster.com/")
 
 language_dropdown = driver.find_element(By.ID, "languages")
