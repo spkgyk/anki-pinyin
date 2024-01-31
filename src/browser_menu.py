@@ -4,7 +4,9 @@ from aqt import mw
 from aqt.qt import *
 from typing import Sequence
 from anki.notes import NoteId
+from aqt.utils import showInfo
 from aqt.browser import Browser
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .config import Config
 from .tts import TTSDownloader
@@ -68,6 +70,20 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     mw.progress.finish()
 
 
+def process_note(nid: NoteId, source: str, dest: str, output_mode: OutputMode):
+    note = mw.col.get_note(nid)
+    fields = note.keys()
+    will_process = source in fields and dest in fields
+    if will_process:
+        downloader = TTSDownloader()
+        selected_text = strip_display_format(note[source], "cn")
+        audio_tag = downloader.tts_download(selected_text)
+        note[dest] = apply_output_mode(output_mode, note[dest], audio_tag)
+        mw.col.update_note(note)
+        downloader.close()
+    return will_process
+
+
 def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode, notes: Sequence[NoteId], widget: QDialog):
     if not yes_no_window(
         f'Generate audio using the "{source}" field for the {len(notes)} selected notes and place it in the "{dest}" field?'
@@ -75,22 +91,24 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
         return
     mw.checkpoint("Chinese Audio Generation")
     widget.close()
-    downloader = TTSDownloader()
 
     progress_widget, bar = get_progress_bar_widget(len(notes))
 
-    for i, nid in enumerate(notes):
-        note = mw.col.get_note(nid)
-        fields = note.keys()
-        if source in fields and dest in fields:
-            selected_text = strip_display_format(note[source], "cn")
-            audio_tag = downloader.tts_download(selected_text)
-            note[dest] = apply_output_mode(output_mode, note[dest], audio_tag)
-            mw.col.update_note(note)
-        bar.setValue(i)
-        mw.app.processEvents()
+    shutil.rmtree(AUDIO_DIR)
+    os.makedirs(AUDIO_DIR)
 
-    downloader.close()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_nid = {executor.submit(process_note, nid, source, dest, output_mode): nid for nid in notes}
+
+        for future in as_completed(future_to_nid):
+            nid = future_to_nid[future]
+            try:
+                will_process = future.result()
+                if not will_process:
+                    showInfo(f'Skipping note with ID "{nid}" as it does not contain the "{source}" and "{dest}" fields')
+            finally:
+                bar.setValue(bar.value() + 1)
+                mw.app.processEvents()
 
     shutil.rmtree(AUDIO_DIR)
     os.makedirs(AUDIO_DIR)

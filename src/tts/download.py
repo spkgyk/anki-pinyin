@@ -5,6 +5,7 @@ from time import sleep
 from io import StringIO
 from pathlib import Path
 from hashlib import sha256
+from threading import Lock
 from html.parser import HTMLParser
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Edge, EdgeOptions
@@ -41,6 +42,7 @@ def strip_tags(html):
 
 
 class TTSDownloader:
+    lock = Lock()
     web_page = "https://micmonster.com/"
     test_area_selector = "#app > div:nth-child(1) > section > div:nth-child(2) > textarea"
     generate_button_selector = "#app > div:nth-child(1) > section > div:nth-child(2) > div.row-center-between.mt-2 > button"
@@ -60,6 +62,7 @@ class TTSDownloader:
     def _get_webpage(self):
         options = EdgeOptions()
         # options.add_argument("--headless")
+        options.add_argument("--start-maximized")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--enable-chrome-browser-cloud-management")
         options.add_experimental_option("prefs", {"download.default_directory": str(AUDIO_DIR)})
@@ -67,7 +70,7 @@ class TTSDownloader:
         service = Service(executable_path=str(TTS_DIR / "msedgedriver.exe"))
 
         self.driver = Edge(options, service)
-        self.driver.maximize_window()
+        self.driver.get(TTSDownloader.web_page)
 
     def tts_download(self, text: str, progress_bar=False, number_of_attempts=5):
         text = strip_tags(text)
@@ -83,8 +86,6 @@ class TTSDownloader:
                     showInfo(f"Attempt {attempt + 1} failed: {e}\nText: {text}")
 
     def _download(self, text: str, progress_bar=False):
-        self.driver.get(TTSDownloader.web_page)
-
         if progress_bar:
             progress_widget, bar = get_progress_bar_widget(4)
 
@@ -126,23 +127,20 @@ class TTSDownloader:
         mw.app.processEvents()
 
         # download audio file
-        all_files = os.listdir(AUDIO_DIR)
-        download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
-        download_button.click()
-        filename = AUDIO_DIR / "zh-CN-XiaoqiuNeural{}.mp3".format(f" ({len(all_files)})" if len(all_files) else "")
-        while not filename.exists():
+        with TTSDownloader.lock:
+            download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
+            download_button.click()
+            # wait for download to start
             sleep(0.1)
+
+            # check if it's still downloading...
+            while self._check_for_downloads():
+                sleep(0.1)
+
+            latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
+            filename = AUDIO_DIR / latest_file
         if progress_bar:
             bar.setValue(3)
-        mw.app.processEvents()
-
-        # return to homepage
-        return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
-        return_button.click()
-        wait = WebDriverWait(self.driver, 20)
-        wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
-        if progress_bar:
-            bar.setValue(4)
         mw.app.processEvents()
 
         # move file to anki media folder
@@ -158,6 +156,9 @@ class TTSDownloader:
             mw.progress.finish()
 
         return audio_tag
+
+    def _check_for_downloads(self):
+        return [f for f in os.listdir(AUDIO_DIR) if f.endswith(".crdownload")]
 
     def close(self):
         self.driver.quit()
