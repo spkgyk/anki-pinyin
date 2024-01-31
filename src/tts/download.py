@@ -15,7 +15,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from aqt import mw
 from aqt.utils import showInfo
 
-from ..utils import TTS_DIR, DATA_DIR
+from ..utils import TTS_DIR, AUDIO_DIR
 from ..user_messages import get_progress_bar_widget
 
 
@@ -58,14 +58,12 @@ class TTSDownloader:
         self._get_webpage()
 
     def _get_webpage(self):
-        self.download_directory = DATA_DIR / "audio"
-
         options = EdgeOptions()
         # options.add_argument("--headless")
-        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--start-maximized")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--enable-chrome-browser-cloud-management")
-        options.add_experimental_option("prefs", {"download.default_directory": str(self.download_directory)})
+        options.add_experimental_option("prefs", {"download.default_directory": str(AUDIO_DIR)})
 
         service = Service(executable_path=str(TTS_DIR / "msedgedriver.exe"))
 
@@ -77,11 +75,10 @@ class TTSDownloader:
 
         for attempt in range(number_of_attempts):
             try:
-                self._download(text, progress_bar)
-                break  # If successful, exit the loop
+                audio_tag, filename = self._download(text, progress_bar)
+                return audio_tag, filename
             except Exception as e:
                 if attempt < number_of_attempts - 1:
-                    # Optionally, handle retries (e.g., reinitialize connections)
                     self.close()
                     self._get_webpage()
                 else:
@@ -129,10 +126,10 @@ class TTSDownloader:
         mw.app.processEvents()
 
         # download audio file
-        all_files = os.listdir(self.download_directory)
+        all_files = os.listdir(AUDIO_DIR)
         download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
         download_button.click()
-        filename = self.download_directory / "zh-CN-XiaoqiuNeural{}.mp3".format(f" ({len(all_files)})" if len(all_files) else "")
+        filename = AUDIO_DIR / "zh-CN-XiaoqiuNeural{}.mp3".format(f" ({len(all_files)})" if len(all_files) else "")
         while not filename.exists():
             sleep(0.1)
         if progress_bar:
@@ -157,14 +154,10 @@ class TTSDownloader:
         shutil.copyfile(filename, destination_path)
         audio_tag = f"[sound:{hashed_filename}]"
 
-        # remove temp file
-        if filename.exists():
-            os.remove(filename)
-
         if progress_bar:
             mw.progress.finish()
 
-        return audio_tag
+        return audio_tag, filename
 
     def close(self):
         self.driver.quit()

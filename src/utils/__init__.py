@@ -1,6 +1,7 @@
 from .paths import (
     add_to_path,
     VENDOR_DIR,
+    AUDIO_DIR,
     DATA_DIR,
     BASE_DIR,
     ICON_DIR,

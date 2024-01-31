@@ -1,3 +1,5 @@
+import shutil
+
 from aqt import mw
 from aqt.qt import *
 from typing import Sequence
@@ -76,6 +78,9 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
     mw.downloader = TTSDownloader()
 
     progress_widget, bar = get_progress_bar_widget(len(notes))
+
+    filenames = []
+
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = note.keys()
@@ -85,6 +90,17 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
             mw.col.update_note(note)
         bar.setValue(i)
         mw.app.processEvents()
+
+    filenames = sorted(filenames)
+
+    assert len(filenames) == len(notes)
+    assert len(set(filenames)) == len(filenames)
+    assert AUDIO_DIR / "zh-CN-XiaoqiuNeural.mp3" in filenames
+    assert AUDIO_DIR / f"zh-CN-XiaoqiuNeural ({len(notes)-1}).mp3" in filenames
+
+    shutil.rmtree(AUDIO_DIR)
+    os.makedirs(AUDIO_DIR)
+
     mw.progress.finish()
 
 
