@@ -97,7 +97,7 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
     shutil.rmtree(AUDIO_DIR, ignore_errors=True)
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
-    with ThreadPoolExecutor(max_workers=25) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         future_to_nid = {executor.submit(process_note, nid, source, dest, output_mode): nid for nid in notes}
 
         for future in as_completed(future_to_nid):
