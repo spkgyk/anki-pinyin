@@ -13,6 +13,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from aqt import mw
+from aqt.utils import showInfo
 
 from ..utils import TTS_DIR, DATA_DIR
 from ..user_messages import get_progress_bar_widget
@@ -71,14 +72,22 @@ class TTSDownloader:
         self.driver = Edge(options, service)
         self.driver.get(TTSDownloader.web_page)
 
-    def tts_download(self, text: str, progress_bar=False):
+    def tts_download(self, text: str, progress_bar=False, number_of_attempts=5):
         text = strip_tags(text)
-        try:
-            self._download(text, progress_bar)
-        except:
-            self.close()
-            self._get_webpage()
-            self._download(text, progress_bar)
+
+        for attempt in range(number_of_attempts):
+            try:
+                self._download(text, progress_bar)
+                break  # If successful, exit the loop
+            except Exception as e:
+                showInfo(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < number_of_attempts - 1:
+                    # Optionally, handle retries (e.g., reinitialize connections)
+                    self.close()
+                    self._get_webpage()
+                else:
+                    # If all attempts fail, raise the exception
+                    raise
 
     def _download(self, text: str, progress_bar=False):
         if progress_bar:
