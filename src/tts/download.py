@@ -62,7 +62,7 @@ class TTSDownloader:
 
         options = EdgeOptions()
         # options.add_argument("--headless")
-        # options.add_argument("window-size=1920,1080")
+        options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--enable-chrome-browser-cloud-management")
         options.add_experimental_option("prefs", {"download.default_directory": str(self.download_directory)})
@@ -80,14 +80,12 @@ class TTSDownloader:
                 self._download(text, progress_bar)
                 break  # If successful, exit the loop
             except Exception as e:
-                showInfo(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < number_of_attempts - 1:
                     # Optionally, handle retries (e.g., reinitialize connections)
                     self.close()
                     self._get_webpage()
                 else:
-                    # If all attempts fail, raise the exception
-                    raise
+                    showInfo(f"Attempt {attempt + 1} failed: {e}\nText: {text}")
 
     def _download(self, text: str, progress_bar=False):
         if progress_bar:
