@@ -14,13 +14,12 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from aqt import mw
-from aqt.utils import showInfo
 
 from ..utils import TTS_DIR, AUDIO_DIR
 from ..user_messages import get_progress_bar_widget
 
 
-DOWNLOAD_LOCK = Lock()
+MKDIR_LOCK = Lock()
 
 
 class MLStripper(HTMLParser):
@@ -58,16 +57,20 @@ class TTSDownloader:
         "#app > div:nth-child(1) > section > div.container.upgrade-section > div.card.text-center.mx-auto.p-5.border-0 > a"
     )
 
-    def __init__(self):
+    def __init__(self, worker: int, media_dir: Path):
+        self.worker = worker
+        self.media_dir = media_dir
+        self.download_dir = AUDIO_DIR / f"worker_{self.worker}"
+        with MKDIR_LOCK:
+            os.makedirs(self.download_dir)
         self._get_webpage()
 
     def _get_webpage(self):
         options = FirefoxOptions()
         options.add_argument("--headless")
-        # options.add_argument("--start-maximized")
         options.add_argument("--window-size=1920,1080")
         options.set_preference("browser.download.folderList", 2)
-        options.set_preference("browser.download.dir", str(AUDIO_DIR))
+        options.set_preference("browser.download.dir", str(self.download_dir))
         options.set_preference("browser.download.manager.showWhenStarting", False)
         options.set_preference("browser.helperApps.neverAsk.saveToDisk", "audio/mpeg")
 
@@ -87,7 +90,7 @@ class TTSDownloader:
                     self.close()
                     self._get_webpage()
                 else:
-                    showInfo(f"Attempt {attempt + 1} failed: {e}\nText: {text}")
+                    raise
 
     def _download(self, text: str, progress_bar=False):
         if progress_bar:
@@ -96,7 +99,7 @@ class TTSDownloader:
         # start the progress bar
         if progress_bar:
             bar.setValue(0)
-        mw.app.processEvents()
+            mw.app.processEvents()
 
         # find the elements
         language_dropdown = self.driver.find_element(By.ID, "languages")
@@ -115,11 +118,11 @@ class TTSDownloader:
         text_area.send_keys(text)
         if progress_bar:
             bar.setValue(1)
-        mw.app.processEvents()
+            mw.app.processEvents()
 
         # generate audio for text
         generate_button.click()
-        wait = WebDriverWait(self.driver, 40)
+        wait = WebDriverWait(self.driver, 30)
         wait.until(
             expected_conditions.text_to_be_present_in_element(
                 (By.CSS_SELECTOR, TTSDownloader.audio_ready_selector),
@@ -128,32 +131,43 @@ class TTSDownloader:
         )
         if progress_bar:
             bar.setValue(2)
-        mw.app.processEvents()
+            mw.app.processEvents()
 
-        # download audio file
+        # get current number of files, then download audio file
+        current_file_count = len(os.listdir(self.download_dir))
         download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
-        with DOWNLOAD_LOCK:
-            start_time = time()
-            files = len(os.listdir(AUDIO_DIR))
-            download_button.click()
+        download_button.click()
 
-            # wait for download to start
-            while (len(os.listdir(AUDIO_DIR)) == files) or (time() - start_time < 10):
-                sleep(0.1)
+        # wait for download for at most 10 seconds
+        start_time = time()
+        while (len(os.listdir(self.download_dir)) == current_file_count) or (time() - start_time < 10):
+            sleep(0.1)
 
-        latest_file = max(os.listdir(AUDIO_DIR), key=lambda x: os.path.getctime(AUDIO_DIR / x))
+        # retrieve latest file
+        latest_file = max(os.listdir(self.download_dir), key=lambda filename: os.path.getctime(self.download_dir / filename))
+        filename = self.download_dir / latest_file
+
+        # make sure its an mp3...
         assert latest_file.endswith("mp3")
-        filename = AUDIO_DIR / latest_file
         if progress_bar:
             bar.setValue(3)
-        mw.app.processEvents()
+            mw.app.processEvents()
+
+        # return to homepage
+        return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
+        return_button.click()
+        wait = WebDriverWait(self.driver, 30)
+        wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
+        if progress_bar:
+            bar.setValue(4)
+            mw.app.processEvents()
 
         # move file to anki media folder
         hasher = sha256()
         with filename.open("rb") as audio_file:
             hasher.update(audio_file.read())
         hashed_filename = f"{hasher.hexdigest()}.mp3"
-        destination_path = Path(mw.col.media.dir()) / hashed_filename
+        destination_path = self.media_dir / hashed_filename
         shutil.copyfile(filename, destination_path)
         audio_tag = f"[sound:{hashed_filename}]"
 

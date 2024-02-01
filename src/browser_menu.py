@@ -2,9 +2,9 @@ import shutil
 
 from aqt import mw
 from aqt.qt import *
+from pathlib import Path
 from typing import Sequence
 from anki.notes import NoteId
-from aqt.utils import showInfo
 from aqt.browser import Browser
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -13,6 +13,18 @@ from .tts import TTSDownloader
 from .tokenizer import strip_display_format, gen_display_format
 from .utils import ReadingType, OutputMode, apply_output_mode, AUDIO_DIR
 from .user_messages import yes_no_window, info_window, get_progress_bar_widget
+
+
+WORKERS = 8
+
+
+class WorkerSignals(QObject):
+    progress = pyqtSignal(int)
+
+
+def update_progress_bar(bar: QProgressBar, value: int):
+    bar.setValue(bar.value() + value)
+    mw.app.processEvents()
 
 
 def browser_mass_generate_readings(
@@ -70,16 +82,14 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     mw.progress.finish()
 
 
-def process_note(nid: NoteId, source: str, dest: str, output_mode: OutputMode):
-    note = mw.col.get_note(nid)
-    fields = note.keys()
-    will_process = source in fields and dest in fields
-    if will_process:
-        downloader = TTSDownloader()
-        selected_text = strip_display_format(note[source], "cn")
-        audio_tag = downloader.tts_download(selected_text)
-        note[dest] = apply_output_mode(output_mode, note[dest], audio_tag)
-        mw.col.update_note(note)
+def process_notes(worker: int, nid_dicts: dict[NoteId, str], signals: WorkerSignals, media_dir: Path):
+    will_process = {}
+    if nid_dicts:
+        downloader = TTSDownloader(worker, media_dir)
+        for nid, selected_text in nid_dicts.items():
+            audio_tag = downloader.tts_download(selected_text)
+            will_process[nid] = audio_tag
+            signals.progress.emit(1)
         downloader.close()
     return will_process
 
@@ -92,26 +102,47 @@ def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode,
     mw.checkpoint("Chinese Audio Generation")
     widget.close()
 
-    progress_widget, bar = get_progress_bar_widget(len(notes))
+    progress_widget, bar = get_progress_bar_widget(len(notes) + 4)
+    signals = WorkerSignals()
+    signals.progress.connect(lambda value: update_progress_bar(bar, value))
+
+    note_groups = [{} for _ in range(WORKERS)]
+    for i, nid in enumerate(notes):
+        note = mw.col.get_note(nid)
+        if source in note.keys() and dest in note.keys():
+            note_groups[i % WORKERS][nid] = strip_display_format(note[source], "cn")
+    signals.progress.emit(1)
 
     shutil.rmtree(AUDIO_DIR, ignore_errors=True)
     os.makedirs(AUDIO_DIR, exist_ok=True)
+    signals.progress.emit(1)
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        future_to_nid = {executor.submit(process_note, nid, source, dest, output_mode): nid for nid in notes}
+    processed = {}
+    media_dir = Path(mw.col.media.dir())
+
+    with ThreadPoolExecutor(max_workers=WORKERS) as executor:
+        future_to_nid = {
+            executor.submit(process_notes, worker, nid_dicts, signals, media_dir): nid_dicts for worker, nid_dicts in enumerate(note_groups)
+        }
 
         for future in as_completed(future_to_nid):
-            nid = future_to_nid[future]
+            nids = future_to_nid[future]
             try:
-                will_process = future.result()
-                if not will_process:
-                    showInfo(f'Skipping note with ID "{nid}" as it does not contain the "{source}" and "{dest}" fields')
-            finally:
-                bar.setValue(bar.value() + 1)
-                mw.app.processEvents()
+                processed_nids = future.result()
+                processed.update(processed_nids)
+            except:
+                pass
+
+    for nid, text in processed.items():
+        note = mw.col.get_note(nid)
+        note[dest] = apply_output_mode(output_mode, note[dest], text)
+        mw.col.update_note(note)
+
+    signals.progress.emit(1)
 
     shutil.rmtree(AUDIO_DIR, ignore_errors=True)
     os.makedirs(AUDIO_DIR, exist_ok=True)
+    signals.progress.emit(1)
 
     mw.progress.finish()
 
