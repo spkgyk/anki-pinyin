@@ -1,1 +1,1 @@
-from .download import TTSDownloader
+from .download import DownloadsThreadManager, TTSDownloader

@@ -5,6 +5,7 @@ from io import StringIO
 from pathlib import Path
 from hashlib import sha256
 from threading import Lock
+from typing import Sequence
 from time import sleep, time
 from html.parser import HTMLParser
 from selenium.webdriver.common.by import By
@@ -14,9 +15,13 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from aqt import mw
+from aqt.qt import *
+from anki.notes import NoteId
+from aqt.utils import showInfo
 
-from ..utils import TTS_DIR, AUDIO_DIR
+from ..tokenizer import strip_display_format
 from ..user_messages import get_progress_bar_widget
+from ..utils import TTS_DIR, AUDIO_DIR, OutputMode, apply_output_mode
 
 
 MKDIR_LOCK = Lock()
@@ -41,6 +46,100 @@ def strip_tags(html):
     s = MLStripper()
     s.feed(html)
     return s.get_data()
+
+
+class WorkerSignals(QObject):
+    progress = pyqtSignal(int)
+    finished = pyqtSignal(dict)
+
+
+class NotesProcessor(QRunnable):
+    def __init__(self, worker: int, nid_dicts: dict[NoteId, str], media_dir: Path):
+        super(NotesProcessor, self).__init__()
+        self.signals = WorkerSignals()
+        self.worker = worker
+        self.nid_dicts = nid_dicts
+        self.media_dir = media_dir
+
+    def run(self):
+        will_process = {}
+        if self.nid_dicts:
+            downloader = TTSDownloader(self.worker, self.media_dir)
+            for nid, selected_text in self.nid_dicts.items():
+                audio_tag = downloader.tts_download(selected_text)
+                will_process[nid] = audio_tag
+                self.signals.progress.emit(1)
+            downloader.close()
+        self.signals.finished.emit(will_process)
+
+
+class DownloadsThreadManager:
+    def __init__(self, source: str, dest: str, output_mode: OutputMode, notes: Sequence[NoteId], num_workers: int):
+        self.source = source
+        self.dest = dest
+        self.output_mode = output_mode
+        self.notes = notes
+        self.num_workers = num_workers
+
+        self.progress_widget, self.bar = get_progress_bar_widget(len(self.notes))
+
+        self.threadpool = QThreadPool()
+        self.threadpool.setMaxThreadCount(self.num_workers)
+        self.processed = {}
+        self.media_dir = Path(mw.col.media.dir())
+
+        self.tasks_completed = 0
+
+        self.note_groups = [{} for _ in range(self.num_workers)]
+        self.notes_to_be_processed = 0
+        for i, nid in enumerate(self.notes):
+            note = mw.col.get_note(nid)
+            if source in note.keys() and dest in note.keys():
+                self.note_groups[i % self.num_workers][nid] = strip_display_format(note[source], "cn")
+                self.notes_to_be_processed += 1
+            self.update_progress_bar(1)
+
+        shutil.rmtree(AUDIO_DIR, ignore_errors=True)
+        os.makedirs(AUDIO_DIR, exist_ok=True)
+
+        self.threads = []
+        self.progress_widget.close()
+
+    def start_tasks(self):
+        self.progress_widget, self.bar = get_progress_bar_widget(self.notes_to_be_processed)
+        for worker, nid_dicts in enumerate(self.note_groups):
+            note_processor_worker = NotesProcessor(worker, nid_dicts, self.media_dir)
+            note_processor_worker.signals.progress.connect(self.update_progress_bar)
+            note_processor_worker.signals.finished.connect(self.task_finished)
+            self.threads.append(note_processor_worker)
+            self.threadpool.start(note_processor_worker)
+
+    def update_progress_bar(self, value: int):
+        self.bar.setValue(self.bar.value() + value)
+        mw.app.processEvents()
+
+    def task_finished(self, result: dict[NoteId, str]):
+        self.processed.update(result)
+        self.tasks_completed += 1
+        self.check_all_tasks_completed()
+
+    def check_all_tasks_completed(self):
+        if self.tasks_completed == self.num_workers:
+            self.progress_widget.close()
+            self.all_tasks_finished()
+
+    def all_tasks_finished(self):
+        self.progress_widget, self.bar = get_progress_bar_widget(self.notes_to_be_processed)
+        shutil.rmtree(AUDIO_DIR, ignore_errors=True)
+        os.makedirs(AUDIO_DIR, exist_ok=True)
+        for nid, text in self.processed.items():
+            note = mw.col.get_note(nid)
+            note[self.dest] = apply_output_mode(self.output_mode, note[self.dest], text)
+            mw.col.update_note(note)
+            self.update_progress_bar(1)
+
+        self.progress_widget.close()
+        mw.manager = None
 
 
 class TTSDownloader:

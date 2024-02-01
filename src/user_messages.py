@@ -60,6 +60,5 @@ def get_progress_bar_widget(length: int):
     layout.addWidget(bar)
 
     progress_widget.show()
-    mw.app.processEvents()
 
     return progress_widget, bar
