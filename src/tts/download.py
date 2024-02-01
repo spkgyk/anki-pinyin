@@ -20,7 +20,7 @@ from anki.notes import NoteId
 from aqt.utils import showInfo
 
 from ..tokenizer import strip_display_format
-from ..user_messages import get_progress_bar_widget
+from ..user_messages import ProgressBarWidget
 from ..utils import TTS_DIR, AUDIO_DIR, OutputMode, apply_output_mode
 
 
@@ -81,7 +81,7 @@ class DownloadsThreadManager:
         self.notes = notes
         self.num_workers = num_workers
 
-        self.progress_widget, self.bar = get_progress_bar_widget(len(self.notes))
+        self.progress_widget = ProgressBarWidget(len(self.notes))
 
         self.threadpool = QThreadPool()
         self.threadpool.setMaxThreadCount(self.num_workers)
@@ -106,7 +106,7 @@ class DownloadsThreadManager:
         self.progress_widget.close()
 
     def start_tasks(self):
-        self.progress_widget, self.bar = get_progress_bar_widget(self.notes_to_be_processed)
+        self.progress_widget = ProgressBarWidget(self.notes_to_be_processed)
         for worker, nid_dicts in enumerate(self.note_groups):
             note_processor_worker = NotesProcessor(worker, nid_dicts, self.media_dir)
             note_processor_worker.signals.progress.connect(self.update_progress_bar)
@@ -115,8 +115,7 @@ class DownloadsThreadManager:
             self.threadpool.start(note_processor_worker)
 
     def update_progress_bar(self, value: int):
-        self.bar.setValue(self.bar.value() + value)
-        mw.app.processEvents()
+        self.progress_widget.increment_value(value)
 
     def task_finished(self, result: dict[NoteId, str]):
         self.processed.update(result)
@@ -129,7 +128,7 @@ class DownloadsThreadManager:
             self.all_tasks_finished()
 
     def all_tasks_finished(self):
-        self.progress_widget, self.bar = get_progress_bar_widget(self.notes_to_be_processed)
+        self.progress_widget = ProgressBarWidget(self.notes_to_be_processed)
         shutil.rmtree(AUDIO_DIR, ignore_errors=True)
         os.makedirs(AUDIO_DIR, exist_ok=True)
         for nid, text in self.processed.items():
@@ -193,12 +192,11 @@ class TTSDownloader:
 
     def _download(self, text: str, progress_bar=False):
         if progress_bar:
-            progress_widget, bar = get_progress_bar_widget(4)
+            progress_widget = ProgressBarWidget(4)
 
         # start the progress bar
         if progress_bar:
-            bar.setValue(0)
-            mw.app.processEvents()
+            progress_widget.set_value(0)
 
         # find the elements
         language_dropdown = self.driver.find_element(By.ID, "languages")
@@ -216,8 +214,7 @@ class TTSDownloader:
         text_area.clear()
         text_area.send_keys(text)
         if progress_bar:
-            bar.setValue(1)
-            mw.app.processEvents()
+            progress_widget.set_value(1)
 
         # generate audio for text
         generate_button.click()
@@ -229,8 +226,7 @@ class TTSDownloader:
             )
         )
         if progress_bar:
-            bar.setValue(2)
-            mw.app.processEvents()
+            progress_widget.set_value(2)
 
         # get current number of files, then download audio file
         current_file_count = len(os.listdir(self.download_dir))
@@ -249,8 +245,7 @@ class TTSDownloader:
         # make sure its an mp3...
         assert latest_file.endswith("mp3")
         if progress_bar:
-            bar.setValue(3)
-            mw.app.processEvents()
+            progress_widget.set_value(3)
 
         # return to homepage
         return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
@@ -258,8 +253,7 @@ class TTSDownloader:
         wait = WebDriverWait(self.driver, 30)
         wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
         if progress_bar:
-            bar.setValue(4)
-            mw.app.processEvents()
+            progress_widget.set_value(4)
 
         # move file to anki media folder
         hasher = sha256()
@@ -271,7 +265,7 @@ class TTSDownloader:
         audio_tag = f"[sound:{hashed_filename}]"
 
         if progress_bar:
-            mw.progress.finish()
+            progress_widget.close()
 
         return audio_tag
 

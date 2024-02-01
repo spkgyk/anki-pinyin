@@ -8,7 +8,7 @@ from .config import Config
 from .tts import DownloadsThreadManager
 from .utils import ReadingType, OutputMode, apply_output_mode
 from .tokenizer import strip_display_format, gen_display_format
-from .user_messages import yes_no_window, info_window, get_progress_bar_widget
+from .user_messages import yes_no_window, info_window, ProgressBarWidget
 
 
 WORKERS = 8
@@ -26,7 +26,7 @@ def browser_mass_generate_readings(
         return
     mw.checkpoint("Chinese Reading Generation")
     widget.close()
-    progress_widget, bar = get_progress_bar_widget(len(notes))
+    progress_widget = ProgressBarWidget(len(notes))
 
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
@@ -45,8 +45,7 @@ def browser_mass_generate_readings(
                     #     note[field_name] = apply_output_mode(Config.variant_fields[field_name], content, tokenization_result.variant)
 
             mw.col.update_note(note)
-        bar.setValue(i)
-        mw.app.processEvents()
+        progress_widget.set_value(i)
     mw.progress.finish()
 
 
@@ -57,15 +56,14 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     ):
         return
     widget.close()
-    progress_widget, bar = get_progress_bar_widget(len(notes))
+    progress_widget = ProgressBarWidget(len(notes))
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
         if source in fields:
             note[source] = strip_display_format(note[source], "cn")
             mw.col.update_note(note)
-        bar.setValue(i)
-        mw.app.processEvents()
+        progress_widget.set_value(i)
     mw.progress.finish()
 
 

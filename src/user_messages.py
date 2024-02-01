@@ -43,22 +43,34 @@ def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
         return False
 
 
-def get_progress_bar_widget(length: int):
-    progress_widget = QWidget()
-    progress_widget.setFixedSize(400, 50)
-    progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
+class ProgressBarWidget(QWidget):
+    def __init__(self, length: int):
+        super().__init__(None)
 
-    layout = QVBoxLayout()
-    progress_widget.setLayout(layout)
+        # Set fixed size and modality of the widget
+        self.setFixedSize(400, 50)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
-    bar = QProgressBar()
-    bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    bar.setMinimum(0)
-    bar.setMaximum(length)
-    bar.setValue(0)
+        # Create and set layout
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-    layout.addWidget(bar)
+        # Create and configure the progress bar
+        self.bar = QProgressBar()
+        self.bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.bar.setMinimum(0)
+        self.bar.setMaximum(length)
+        self.set_value(0)
 
-    progress_widget.show()
+        # Add the progress bar to the layout
+        layout.addWidget(self.bar)
 
-    return progress_widget, bar
+        # Show the widget
+        self.show()
+
+    def set_value(self, value: int):
+        self.bar.setValue(value)
+        mw.app.processEvents()
+
+    def increment_value(self, value: int):
+        self.set_value(self.bar.value() + value)
