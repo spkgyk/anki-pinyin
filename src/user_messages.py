@@ -44,11 +44,12 @@ def yes_no_window(text: str, parent: QWidget = None, day: bool = True):
 
 
 class ProgressBarWidget(QWidget):
-    def __init__(self, length: int):
-        super().__init__(None)
+    cancel_signal = pyqtSignal()
 
+    def __init__(self, length: int, cancel_button: bool = False):
+        super().__init__(None)
         # Set fixed size and modality of the widget
-        self.setFixedSize(400, 50)
+        self.setMinimumWidth(400)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
         # Create and set layout
@@ -58,15 +59,24 @@ class ProgressBarWidget(QWidget):
         # Create and configure the progress bar
         self.bar = QProgressBar()
         self.bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.bar.setMinimumHeight(15)
         self.bar.setMinimum(0)
         self.bar.setMaximum(length)
         self.set_value(0)
 
-        # Add the progress bar to the layout
         layout.addWidget(self.bar)
+
+        # Create the cancel button
+        if cancel_button:
+            self.cancel_button = QPushButton("Cancel")
+            self.cancel_button.clicked.connect(self.on_cancel)
+            layout.addWidget(self.cancel_button)
 
         # Show the widget
         self.show()
+
+    def cancel_connect(self, fn: Callable):
+        self.cancel_signal.connect(fn)
 
     def set_value(self, value: int):
         self.bar.setValue(value)
@@ -74,3 +84,7 @@ class ProgressBarWidget(QWidget):
 
     def increment_value(self, value: int):
         self.set_value(self.bar.value() + value)
+
+    def on_cancel(self):
+        self.cancel_signal.emit()
+        self.close()

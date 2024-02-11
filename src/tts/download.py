@@ -17,7 +17,6 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from aqt import mw
 from aqt.qt import *
 from anki.notes import NoteId
-from aqt.utils import showInfo
 
 from ..tokenizer import strip_display_format
 from ..user_messages import ProgressBarWidget
@@ -54,27 +53,48 @@ class WorkerSignals(QObject):
 
 
 class NotesProcessor(QRunnable):
-    def __init__(self, worker: int, nid_dicts: dict[NoteId, str], media_dir: Path):
+
+    def __init__(
+        self,
+        worker: int,
+        nid_dicts: dict[NoteId, str],
+        media_dir: Path,
+        progress_callable: Callable,
+        finished_callable: Callable,
+        cancel_connection: pyqtBoundSignal,
+    ):
         super(NotesProcessor, self).__init__()
         self.signals = WorkerSignals()
         self.worker = worker
         self.nid_dicts = nid_dicts
         self.media_dir = media_dir
+        self._cancel = False
+        self.signals.progress.connect(progress_callable)
+        self.signals.finished.connect(finished_callable)
+        cancel_connection.connect(self.cancel)
 
     def run(self):
         will_process = {}
         if self.nid_dicts:
             downloader = TTSDownloader(self.worker, self.media_dir)
             for nid, selected_text in self.nid_dicts.items():
+                if self._cancel:
+                    downloader.cancel()
+                    return
                 audio_tag = downloader.tts_download(selected_text)
                 will_process[nid] = audio_tag
                 self.signals.progress.emit(1)
-            downloader.close()
         self.signals.finished.emit(will_process)
 
+    def cancel(self):
+        self._cancel = True
 
-class DownloadsThreadManager:
+
+class DownloadsThreadManager(QObject):
+    cancel_all_workers = pyqtSignal()
+
     def __init__(self, source: str, dest: str, output_mode: OutputMode, notes: Sequence[NoteId], num_workers: int):
+        super(DownloadsThreadManager, self).__init__()
         self.source = source
         self.dest = dest
         self.output_mode = output_mode
@@ -102,16 +122,20 @@ class DownloadsThreadManager:
         shutil.rmtree(AUDIO_DIR, ignore_errors=True)
         os.makedirs(AUDIO_DIR, exist_ok=True)
 
-        self.threads = []
         self.progress_widget.close()
 
     def start_tasks(self):
-        self.progress_widget = ProgressBarWidget(self.notes_to_be_processed)
+        self.progress_widget = ProgressBarWidget(self.notes_to_be_processed, True)
+        self.progress_widget.cancel_connect(self.cancel)
         for worker, nid_dicts in enumerate(self.note_groups):
-            note_processor_worker = NotesProcessor(worker, nid_dicts, self.media_dir)
-            note_processor_worker.signals.progress.connect(self.update_progress_bar)
-            note_processor_worker.signals.finished.connect(self.task_finished)
-            self.threads.append(note_processor_worker)
+            note_processor_worker = NotesProcessor(
+                worker,
+                nid_dicts,
+                self.media_dir,
+                self.update_progress_bar,
+                self.task_finished,
+                self.cancel_all_workers,
+            )
             self.threadpool.start(note_processor_worker)
 
     def update_progress_bar(self, value: int):
@@ -140,6 +164,16 @@ class DownloadsThreadManager:
         self.progress_widget.close()
         mw.manager = None
 
+    def cancel(self):
+        self.cancel_all_workers.emit()
+        self.threadpool.start(self.clear_up)
+
+    def clear_up(self):
+        shutil.rmtree(AUDIO_DIR, ignore_errors=True)
+        os.makedirs(AUDIO_DIR, exist_ok=True)
+        self.progress_widget.close()
+        mw.manager = None
+
 
 class TTSDownloader:
     web_page = "https://micmonster.com/"
@@ -159,6 +193,7 @@ class TTSDownloader:
         self.worker = worker
         self.media_dir = media_dir
         self.download_dir = AUDIO_DIR / f"worker_{self.worker}"
+        self._cancel = False
         with MKDIR_LOCK:
             os.makedirs(self.download_dir)
         self._get_webpage()
@@ -184,11 +219,12 @@ class TTSDownloader:
             try:
                 return self._download(text, progress_bar)
             except Exception as e:
+                if self._cancel:
+                    return self.close()
+
                 if attempt < number_of_attempts - 1:
                     self.close()
                     self._get_webpage()
-                else:
-                    raise
 
     def _download(self, text: str, progress_bar=False):
         if progress_bar:
@@ -269,5 +305,12 @@ class TTSDownloader:
 
         return audio_tag
 
+    def cancel(self):
+        self._cancel = True
+        self.close()
+
     def close(self):
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except:
+            pass
