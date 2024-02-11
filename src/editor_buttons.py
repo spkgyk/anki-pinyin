@@ -1,9 +1,13 @@
+import os
+import shutil
+
 from aqt import mw
+from pathlib import Path
 from aqt.editor import Editor
 
 from .config import Config
 from .tts import TTSDownloader
-from .utils import apply_output_mode, ICON_DIR
+from .utils import apply_output_mode, ICON_DIR, AUDIO_DIR
 from .tokenizer import strip_display_format, gen_display_format
 
 
@@ -37,13 +41,16 @@ def editor_strip_readings(editor: Editor):
 def editor_generate_audio(editor: Editor):
     current_field_id = editor.currentField
     if current_field_id is not None:
-        mw.downloader = TTSDownloader()
+        mw.downloader = TTSDownloader("no_worker", Path(mw.col.media.dir()))
         selected_text = strip_display_format(editor.note.fields[current_field_id], "cn")
         filename = mw.downloader.tts_download(selected_text, True)
 
         for field_name in editor.note.keys():
             if field_name in Config.audio_fields:
-                editor.note[field_name] = filename
+                editor.note[field_name] = apply_output_mode(Config.audio_fields[field_name], editor.note.fields[current_field_id], filename)
+
+        shutil.rmtree(AUDIO_DIR, ignore_errors=True)
+        os.makedirs(AUDIO_DIR, exist_ok=True)
 
         editor.loadNoteKeepingFocus()
 

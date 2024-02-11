@@ -195,7 +195,7 @@ class TTSDownloader:
         self.download_dir = AUDIO_DIR / f"worker_{self.worker}"
         self._cancel = False
         with MKDIR_LOCK:
-            os.makedirs(self.download_dir)
+            os.makedirs(self.download_dir, exist_ok=True)
         self._get_webpage()
 
     def _get_webpage(self):
