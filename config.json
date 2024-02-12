@@ -14,7 +14,7 @@
     "Variant": "Overwrite",
     "Var": "Overwrite"
   },
-  "audio_fields": [
-    "Sentence Audio"
-  ]
+  "audio_fields": {
+    "Sentence Audio": "Overwrite"
+  }
 }
