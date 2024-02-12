@@ -82,8 +82,12 @@ class NotesProcessor(QRunnable):
                     downloader.cancel()
                     return
                 audio_tag = downloader.tts_download(selected_text)
-                will_process[nid] = audio_tag
-                self.signals.progress.emit(1)
+                if audio_tag:
+                    will_process[nid] = audio_tag
+                    self.signals.progress.emit(1)
+                else:
+                    # todo: EMIT FAILURE SIGNAL
+                    continue
         self.signals.finished.emit(will_process)
 
     def cancel(self):
@@ -295,7 +299,7 @@ class TTSDownloader:
         hasher = sha256()
         with filename.open("rb") as audio_file:
             hasher.update(audio_file.read())
-        hashed_filename = f"{hasher.hexdigest()}.mp3"
+        hashed_filename = f"zh-CN-XiaoqiuNeural-{hasher.hexdigest()}.mp3"
         destination_path = self.media_dir / hashed_filename
         shutil.copyfile(filename, destination_path)
         audio_tag = f"[sound:{hashed_filename}]"

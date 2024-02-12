@@ -11,6 +11,7 @@ from .paths import (
 from .functions import (
     PUNCTUATION_EMOJI_SPACE,
     PUNCTUATION_EMOJI,
+    TRAILING_BR_TAGS,
     SQUARE_BR,
     NUMBERS,
     apply_output_mode,

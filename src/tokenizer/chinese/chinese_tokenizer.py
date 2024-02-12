@@ -12,6 +12,7 @@ from ..base import BaseToken, BaseTokenizer
 from ...utils import (
     ReadingType,
     set_value_space,
+    TRAILING_BR_TAGS,
     CACHE_SIZE,
     VENDOR_DIR,
     SQUARE_BR,
@@ -131,7 +132,7 @@ class ChineseTokenizer(BaseTokenizer):
 
     @staticmethod
     def strip_display_format(text: str):
-        return SQUARE_BR.sub("", text)
+        return TRAILING_BR_TAGS.sub("", SQUARE_BR.sub("", text))
 
     def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         text = self.strip_display_format(text)
