@@ -51,6 +51,7 @@ class ProgressBarWidget(QWidget):
         # Set fixed size and modality of the widget
         self.setMinimumWidth(400)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Create and set layout
         layout = QVBoxLayout()
@@ -59,7 +60,7 @@ class ProgressBarWidget(QWidget):
         # Create and configure the progress bar
         self.bar = QProgressBar()
         self.bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.bar.setMinimumHeight(15)
+        self.bar.setMinimumHeight(10)
         self.bar.setMinimum(0)
         self.bar.setMaximum(length)
         self.set_value(0)

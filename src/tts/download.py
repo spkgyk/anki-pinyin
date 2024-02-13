@@ -69,6 +69,7 @@ class NotesProcessor(QRunnable):
         self.nid_dicts = nid_dicts
         self.media_dir = media_dir
         self._cancel = False
+        self.downloader = None
         self.signals.progress.connect(progress_callable)
         self.signals.finished.connect(finished_callable)
         cancel_connection.connect(self.cancel)
@@ -76,21 +77,22 @@ class NotesProcessor(QRunnable):
     def run(self):
         will_process = {}
         if self.nid_dicts:
-            downloader = TTSDownloader(self.worker, self.media_dir)
+            self.downloader = TTSDownloader(self.worker, self.media_dir)
             for nid, selected_text in self.nid_dicts.items():
                 if self._cancel:
-                    downloader.cancel()
+                    self.downloader.cancel()
+                    self.downloader.close()
+                    del self.downloader
                     return
-                audio_tag = downloader.tts_download(selected_text)
+                audio_tag = self.downloader.tts_download(selected_text)
                 if audio_tag:
                     will_process[nid] = audio_tag
                     self.signals.progress.emit(1)
-                else:
-                    # todo: EMIT FAILURE SIGNAL
-                    continue
         self.signals.finished.emit(will_process)
 
     def cancel(self):
+        if self.downloader:
+            self.downloader.cancel()
         self._cancel = True
 
 
@@ -221,43 +223,47 @@ class TTSDownloader:
 
         for attempt in range(number_of_attempts):
             try:
+                if attempt > 0:
+                    self._get_webpage()
                 return self._download(text, progress_bar)
             except Exception as e:
+                self.close()
                 if self._cancel:
-                    return self.close()
+                    return False
+                if attempt == number_of_attempts - 1:
+                    return False
 
-                if attempt < number_of_attempts - 1:
-                    self.close()
-                    self._get_webpage()
-
-    def _download(self, text: str, progress_bar=False):
+    def _find_elements(self, progress_bar: bool):
         if progress_bar:
-            progress_widget = ProgressBarWidget(4)
+            self.progress_widget = ProgressBarWidget(4)
 
         # start the progress bar
         if progress_bar:
-            progress_widget.set_value(0)
+            self.progress_widget.set_value(0)
 
         # find the elements
-        language_dropdown = self.driver.find_element(By.ID, "languages")
-        voices_dropdown = self.driver.find_element(By.ID, "voices")
-        text_area = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.test_area_selector)
-        generate_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_button_selector)
+        self.language_dropdown = self.driver.find_element(By.ID, "languages")
+        self.voices_dropdown = self.driver.find_element(By.ID, "voices")
+        self.text_area = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.test_area_selector)
+        self.generate_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_button_selector)
 
+    def _set_language_and_voice(self):
         # set language and voice
-        language_dropdown_select = Select(language_dropdown)
-        language_dropdown_select.select_by_value("zh-CN")
-        voices_dropdown_select = Select(voices_dropdown)
-        voices_dropdown_select.select_by_value("zh-CN-XiaoqiuNeural")
+        self.language_dropdown_select = Select(self.language_dropdown)
+        self.language_dropdown_select.select_by_value("zh-CN")
+        self.voices_dropdown_select = Select(self.voices_dropdown)
+        self.voices_dropdown_select.select_by_value("zh-CN-XiaoqiuNeural")
 
+    def _send_text(self, text: str, progress_bar: bool):
         # send text to micmonster
-        text_area.clear()
-        text_area.send_keys(text)
+        self.text_area.clear()
+        self.text_area.send_keys(text)
         if progress_bar:
-            progress_widget.set_value(1)
+            self.progress_widget.set_value(1)
 
+    def _generate_audio(self, progress_bar: bool):
         # generate audio for text
-        generate_button.click()
+        self.generate_button.click()
         wait = WebDriverWait(self.driver, 30)
         wait.until(
             expected_conditions.text_to_be_present_in_element(
@@ -266,8 +272,9 @@ class TTSDownloader:
             )
         )
         if progress_bar:
-            progress_widget.set_value(2)
+            self.progress_widget.set_value(2)
 
+    def _download_audio_file(self, progress_bar: bool):
         # get current number of files, then download audio file
         current_file_count = len(os.listdir(self.download_dir))
         download_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.download_button_selector)
@@ -285,16 +292,19 @@ class TTSDownloader:
         # make sure its an mp3...
         assert latest_file.endswith("mp3")
         if progress_bar:
-            progress_widget.set_value(3)
+            self.progress_widget.set_value(3)
 
-        # return to homepage
+        return filename
+
+    def _return_to_homepage(self, progress_bar: bool):
         return_button = self.driver.find_element(By.CSS_SELECTOR, TTSDownloader.generate_more_selector)
         return_button.click()
         wait = WebDriverWait(self.driver, 30)
         wait.until(expected_conditions.presence_of_element_located((By.ID, "languages")))
         if progress_bar:
-            progress_widget.set_value(4)
+            self.progress_widget.set_value(4)
 
+    def _move_download_and_get_audio_tag(self, filename: Path, progress_bar: bool):
         # move file to anki media folder
         hasher = sha256()
         with filename.open("rb") as audio_file:
@@ -305,13 +315,24 @@ class TTSDownloader:
         audio_tag = f"[sound:{hashed_filename}]"
 
         if progress_bar:
-            progress_widget.close()
+            self.progress_widget.close()
+
+        return audio_tag
+
+    def _download(self, text: str, progress_bar: bool = False):
+
+        self._find_elements(progress_bar)
+        self._set_language_and_voice()
+        self._send_text(text, progress_bar)
+        self._generate_audio(progress_bar)
+        filename = self._download_audio_file(progress_bar)
+        self._return_to_homepage(progress_bar)
+        audio_tag = self._move_download_and_get_audio_tag(filename, progress_bar)
 
         return audio_tag
 
     def cancel(self):
         self._cancel = True
-        self.close()
 
     def close(self):
         try:
