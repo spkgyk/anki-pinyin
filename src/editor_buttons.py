@@ -68,8 +68,8 @@ def add_editor_buttons(buttons: list[str], editor: Editor):
             icon=du_icon,
             cmd="editor_generate_readings",
             func=lambda editor=editor: editor_generate_readings(editor),
-            tip="Generate pinyin for the selected field",
-            keys="f9",
+            tip="Generate pinyin for the selected field (Alt + G)",
+            keys="Alt+G",
         )
     )
     buttons.append(
@@ -77,8 +77,8 @@ def add_editor_buttons(buttons: list[str], editor: Editor):
             icon=shan_icon,
             cmd="editor_strip_readings",
             func=lambda editor=editor: editor_strip_readings(editor),
-            tip="Strip readings from the selected field",
-            keys="f10",
+            tip="Strip readings from the selected field (Alt + R)",
+            keys="Alt+R",
         )
     )
     buttons.append(
@@ -86,7 +86,7 @@ def add_editor_buttons(buttons: list[str], editor: Editor):
             icon=audio_icon,
             cmd="editor_generate_audio",
             func=lambda editor=editor: editor_generate_audio(editor),
-            tip="Generate audio for the selected field",
-            keys="",
+            tip="Generate audio for the selected field (Alt + A)",
+            keys="Alt+A",
         )
     )
