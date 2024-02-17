@@ -15,6 +15,6 @@
     "Var": "Overwrite"
   },
   "audio_fields": {
-    "Sentence Audio": "Overwrite"
+    "Sentence Audio": "Append"
   }
 }
