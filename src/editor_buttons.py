@@ -47,7 +47,7 @@ def editor_generate_audio(editor: Editor):
 
         for field_name in editor.note.keys():
             if field_name in Config.audio_fields:
-                editor.note[field_name] = apply_output_mode(Config.audio_fields[field_name], editor.note.fields[current_field_id], filename)
+                editor.note[field_name] = apply_output_mode(Config.audio_fields[field_name], editor.note[field_name], filename)
 
         shutil.rmtree(AUDIO_DIR, ignore_errors=True)
         os.makedirs(AUDIO_DIR, exist_ok=True)
