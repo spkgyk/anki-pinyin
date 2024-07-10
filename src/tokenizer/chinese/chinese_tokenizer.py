@@ -12,6 +12,7 @@ from ..base import BaseToken, BaseTokenizer
 from ...utils import (
     ReadingType,
     set_value_space,
+    TRAILING_BR_TAGS,
     CACHE_SIZE,
     VENDOR_DIR,
     SQUARE_BR,
@@ -25,7 +26,7 @@ _simp_trad_map_path = VENDOR_DIR / "opencc" / "dictionary" / "STCharacters.txt"
 
 simp_trad_map = {}
 all_simp_chars = ""
-with _simp_trad_map_path.open("r") as f:
+with _simp_trad_map_path.open("r", encoding="utf-8") as f:
     simp_trad_map_list = f.readlines()
     for item in simp_trad_map_list:
         item = item.strip()
@@ -131,7 +132,7 @@ class ChineseTokenizer(BaseTokenizer):
 
     @staticmethod
     def strip_display_format(text: str):
-        return SQUARE_BR.sub("", text)
+        return TRAILING_BR_TAGS.sub("", SQUARE_BR.sub("", text))
 
     def tokenize(self, text: str, reading_type: ReadingType = ReadingType.PINYIN_ACCENTS):
         text = self.strip_display_format(text)

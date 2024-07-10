@@ -14,6 +14,7 @@ space_newline = r"\d\s\n"
 
 NUMBERS = re.compile(r"(?<=\d)(?=[A-Za-z])")
 SQUARE_BR = re.compile(r"\[.*?\]")
+TRAILING_BR_TAGS = re.compile(r"(<br\s*/?>|[ \n])+$")
 PUNCTUATION_EMOJI = re.compile(f"[{punctuation_pattern}{emoji_pattern}{newline}]")
 PUNCTUATION_EMOJI_SPACE = re.compile(f"[{punctuation_pattern}{emoji_pattern}{space_newline}]")
 

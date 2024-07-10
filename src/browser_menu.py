@@ -5,25 +5,13 @@ from anki.notes import NoteId
 from aqt.browser import Browser
 
 from .config import Config
-from .user_messages import yes_no_window, info_window
+from .tts import DownloadsThreadManager
+from .utils import ReadingType, OutputMode, apply_output_mode
 from .tokenizer import strip_display_format, gen_display_format
-from .utils import ReadingType, OutputMode, ICON_DIR, apply_output_mode
+from .user_messages import yes_no_window, info_window, ProgressBarWidget
 
 
-def get_progress_bar_widget(length: int):
-    progress_widget = QWidget(None)
-    progress_widget.setFixedSize(400, 70)
-    progress_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-    progress_widget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
-    bar = QProgressBar(progress_widget)
-    bar.setFixedSize(390, 50)
-    bar.move(10, 10)
-    bar_label = QLabel(bar)
-    bar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    progress_widget.show()
-    bar.setMinimum(0)
-    bar.setMaximum(length)
-    return progress_widget, bar
+WORKERS = 8
 
 
 def browser_mass_generate_readings(
@@ -34,11 +22,11 @@ def browser_mass_generate_readings(
     notes: Sequence[NoteId],
     widget: QDialog,
 ):
-    mw.checkpoint("Chinese Reading Generation")
     if not yes_no_window('Extract characters from the "' + source + '" field\nand use to generate readings in the "' + dest + '" field?'):
         return
+    mw.checkpoint("Chinese Reading Generation")
     widget.close()
-    progress_widget, bar = get_progress_bar_widget(len(notes))
+    progress_widget = ProgressBarWidget(len(notes))
 
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
@@ -57,8 +45,7 @@ def browser_mass_generate_readings(
                     #     note[field_name] = apply_output_mode(Config.variant_fields[field_name], content, tokenization_result.variant)
 
             mw.col.update_note(note)
-        bar.setValue(i)
-        mw.app.processEvents()
+        progress_widget.set_value(i)
     mw.progress.finish()
 
 
@@ -69,16 +56,27 @@ def browser_mass_strip_readings(source: str, notes: Sequence[NoteId], widget: QD
     ):
         return
     widget.close()
-    progress_widget, bar = get_progress_bar_widget(len(notes))
+    progress_widget = ProgressBarWidget(len(notes))
     for i, nid in enumerate(notes):
         note = mw.col.get_note(nid)
         fields = mw.col.models.field_names(note.note_type())
         if source in fields:
             note[source] = strip_display_format(note[source], "cn")
             mw.col.update_note(note)
-        bar.setValue(i)
-        mw.app.processEvents()
+        progress_widget.set_value(i)
     mw.progress.finish()
+
+
+def browser_mass_generate_audio(source: str, dest: str, output_mode: OutputMode, notes: Sequence[NoteId], widget: QDialog):
+    if not yes_no_window(
+        f'Generate audio using the "{source}" field for the {len(notes)} selected notes and place it in the "{dest}" field?'
+    ):
+        return
+    mw.checkpoint("Chinese Audio Generation")
+    widget.close()
+
+    mw.manager = DownloadsThreadManager(source, dest, output_mode, notes, WORKERS)
+    mw.manager.start_tasks()
 
 
 def browser_menu(browser: Browser):
@@ -115,6 +113,16 @@ def browser_menu(browser: Browser):
         )
         remove_button = QPushButton("Remove Readings")
         remove_button.clicked.connect(lambda: browser_mass_strip_readings(source_cb.currentText(), notes, generateWidget))
+        generate_audio_button = QPushButton("Generate Audio")
+        generate_audio_button.clicked.connect(
+            lambda: browser_mass_generate_audio(
+                source_cb.currentText(),
+                dest_cb.currentText(),
+                OutputMode(output_mode_cb.currentText()),
+                notes,
+                generateWidget,
+            )
+        )
         layout.addWidget(source_label)
         layout.addWidget(source_cb)
         layout.addWidget(dest_label)
@@ -125,8 +133,8 @@ def browser_menu(browser: Browser):
         layout.addWidget(reading_type_cb)
         layout.addWidget(add_button)
         layout.addWidget(remove_button)
+        layout.addWidget(generate_audio_button)
         generateWidget.setWindowTitle("Generate Chinese Readings")
-        generateWidget.setWindowIcon(QIcon(str(ICON_DIR / "migaku.png")))
         generateWidget.setLayout(layout)
         generateWidget.exec()
     else:
